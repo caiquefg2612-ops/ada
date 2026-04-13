@@ -1,84 +1,153 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ADA - Relatórios</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
-        .navbar {
-            background: #1a1a2e;
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .navbar a { color: white; text-decoration: none; margin-left: 20px; }
-        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h2 { margin-bottom: 20px; color: #0066B3; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #f8f9fa; }
-        .btn-voltar {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #666;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <h2>ADA Admin - Relatórios</h2>
-        <div>
-            <a href="{{ url_for('dashboard_admin') }}">Voltar</a>
-            <a href="{{ url_for('logout') }}">Sair</a>
-        </div>
+{% extends "base.html" %}
+
+{% block title %}Relatórios{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+    }
+
+    .header {
+        background: #1a1a2e;
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .header h2 {
+        font-size: 1.5rem;
+    }
+
+    .header h2 span {
+        color: #00d4ff;
+    }
+
+    .header a {
+        color: white;
+        text-decoration: none;
+        background: #0066B3;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: background 0.3s;
+        margin-left: 10px;
+    }
+
+    .header a:hover {
+        background: #004d8c;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+        color: #0066B3;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        border-left: 4px solid #009E2C;
+        padding-left: 15px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    th {
+        background: #f8f9fa;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .btn-voltar {
+        background: #666;
+    }
+
+    .btn-voltar:hover {
+        background: #555;
+    }
+
+    /* Alto contraste */
+    body.alto-contraste .card {
+        background: black;
+        border: 1px solid yellow;
+    }
+
+    body.alto-contraste table th,
+    body.alto-contraste table td {
+        border-color: yellow;
+        color: yellow;
+    }
+</style>
+
+<div class="header">
+    <h2>ADA Admin <span>| Relatórios</span></h2>
+    <div>
+        <a href="{{ url_for('dashboard_admin') }}">← Voltar</a>
+        <a href="{{ url_for('logout') }}" style="background:#666;">Sair</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>Demandas por Categoria</h2>
+        <table>
+            <thead>
+                <tr><th>Categoria</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+                {% for item in stats_categoria %}
+                <tr>
+                    <td>{{ item[0] if item[0] else 'Não classificada' }}</div>
+                    <td>{{ item[1] }}</div>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
-    <div class="container">
-        <div class="card">
-            <h2>Demandas por Categoria</h2>
-            <table>
-                <thead>
-                    <tr><th>Categoria</th><th>Total</th></tr>
-                </thead>
-                <tbody>
-                    {% for item in stats_categoria %}
-                    <tr>
-                        <td>{{ item[0] if item[0] else 'Não classificada' }}</td>
-                        <td>{{ item[1] }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="card">
-            <h2>Demandas por Status</h2>
-            <table>
-                <thead>
-                    <tr><th>Status</th><th>Total</th></tr>
-                </thead>
-                <tbody>
-                    {% for item in stats_status %}
-                    <tr>
-                        <td>{{ item[0] }}</td>
-                        <td>{{ item[1] }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="card">
+        <h2>Demandas por Status</h2>
+        <table>
+            <thead>
+                <tr><th>Status</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+                {% for item in stats_status %}
+                <tr>
+                    <td>{{ item[0] }}</div>
+                    <td>{{ item[1] }}</div>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

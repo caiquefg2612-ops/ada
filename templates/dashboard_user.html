@@ -1,179 +1,328 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ADA - Minhas Demandas</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
-        .navbar {
-            background: #1a1a2e;
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            margin-left: 20px;
-            padding: 8px 16px;
-            border-radius: 8px;
-        }
-        .navbar a:hover { background: #0066B3; }
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #009E2C;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-        .btn:hover { background: #007a22; }
-        .status {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-        .status-PENDENTE { background: #ffc107; color: #333; }
-        .status-EM_ANDAMENTO { background: #17a2b8; color: white; }
-        .status-RESOLVIDO { background: #28a745; color: white; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #f8f9fa; }
-        .welcome {
-            background: linear-gradient(135deg, #0066B3, #009E2C);
-            color: white;
-        }
-        .solucao-texto {
-            background: #e8f4fd;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-        .solucao-editada {
-            background: #d4edda;
-            border-left: 4px solid #28a745;
-        }
-        .solucao-ia {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-        }
-        .btn-detalhes {
-            background: #0066B3;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .info-solucao {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 5px;
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <h2>ADA - {{ nome }}</h2>
-        <div>
-            <a href="{{ url_for('nova_demanda') }}">Nova Demanda</a>
-            <a href="{{ url_for('logout') }}">Sair</a>
-        </div>
+{% extends "base.html" %}
+
+{% block title %}Minhas Demandas{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+    }
+
+    .header {
+        background: #1a1a2e;
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .header h2 {
+        font-size: 1.5rem;
+    }
+
+    .header h2 span {
+        color: #00d4ff;
+    }
+
+    .header a {
+        color: white;
+        text-decoration: none;
+        background: #0066B3;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: background 0.3s;
+    }
+
+    .header a:hover {
+        background: #004d8c;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
+
+    .welcome-card {
+        background: linear-gradient(135deg, #0066B3, #009E2C);
+        color: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .welcome-card h1 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+
+    .btn-ouvir {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.5);
+        padding: 8px 16px;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background 0.3s;
+    }
+
+    .btn-ouvir:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+    .card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+        color: #0066B3;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        border-left: 4px solid #009E2C;
+        padding-left: 15px;
+    }
+
+    .btn-novo {
+        display: inline-block;
+        background: #009E2C;
+        color: white;
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        transition: background 0.3s;
+    }
+
+    .btn-novo:hover {
+        background: #007a22;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    th {
+        background: #f8f9fa;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    .status-PENDENTE {
+        background: #ffc107;
+        color: #333;
+    }
+
+    .status-EM_ANDAMENTO {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .status-RESOLVIDO {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-detalhes {
+        background: #0066B3;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: background 0.3s;
+    }
+
+    .btn-detalhes:hover {
+        background: #004d8c;
+    }
+
+    .solucao-texto {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 12px;
+        margin-top: 10px;
+    }
+
+    .solucao-editada {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+    }
+
+    .solucao-ia {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+    }
+
+    .info-solucao {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 10px;
+    }
+
+    .btn-ouvir-solucao {
+        background: #0066B3;
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        margin-top: 10px;
+    }
+
+    .sem-demandas {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+
+    /* Alto contraste */
+    body.alto-contraste .card {
+        background: black;
+        border: 1px solid yellow;
+    }
+
+    body.alto-contraste table th,
+    body.alto-contraste table td {
+        border-color: yellow;
+        color: yellow;
+    }
+
+    body.alto-contraste .solucao-texto {
+        background: #333;
+        color: yellow;
+    }
+</style>
+
+<div class="header">
+    <h2>ADA <span>| {{ nome }}</span></h2>
+    <div>
+        <a href="{{ url_for('nova_demanda') }}">+ Nova Demanda</a>
+        <a href="{{ url_for('logout') }}" style="background:#666;">Sair</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="welcome-card">
+        <h1>Olá, {{ nome }}!</h1>
+        <p>Registre suas demandas de acessibilidade e acompanhe as soluções.</p>
+        <button class="btn-ouvir" onclick="lerTexto('Olá {{ nome }}! Você tem {{ demandas|length }} demandas registradas. Clique em Nova Demanda para criar uma nova solicitação.')">
+            🔊 Ouvir Boas-Vindas
+        </button>
     </div>
 
-    <div class="container">
-        <div class="card welcome">
-            <h1>Olá, {{ nome }}!</h1>
-            <p>Registre suas demandas de acessibilidade e acompanhe as soluções.</p>
-        </div>
+    <div class="card">
+        <h2>Minhas Demandas</h2>
 
-        <div class="card">
-            <h2>Minhas Demandas</h2>
-            {% if demandas %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Título</th>
-                        <th>Categoria</th>
-                        <th>Status</th>
-                        <th>Data</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for d in demandas %}
-                    <tr>
-                        <td>{{ d[0] }}</td>
-                        <td>{{ d[1] }}</td>
-                        <td><strong>{{ d[2] }}</strong></td>
-                        <td><span class="status status-{{ d[3] }}">{{ d[3] }}</span></td>
-                        <td>{{ d[4].strftime('%d/%m/%Y') if d[4] else '' }}</td>
-                        <td><button class="btn-detalhes" onclick="toggleDetalhes({{ d[0] }})">Ver Solução</button></td>
-                    </tr>
-                    <tr id="detalhes-{{ d[0] }}" style="display:none;">
-                        <td colspan="6">
-                            <div class="solucao-texto
-                                {% if d[6] %}solucao-editada{% else %}solucao-ia{% endif %}">
-                                <strong>
-                                    {% if d[6] %}
-                                        Solução (editada pelo administrador):
-                                    {% else %}
-                                        Solução sugerida (IA):
-                                    {% endif %}
-                                </strong>
-                                <br>
+        {% if demandas %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Categoria</th>
+                    <th>Status</th>
+                    <th>Data</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in demandas %}
+                <tr>
+                    <td>{{ d[0] }}</td>
+                    <td>{{ d[1] }}</td>
+                    <td><strong>{{ d[2] }}</strong></td>
+                    <td><span class="status status-{{ d[3] }}">{{ d[3] }}</span></td>
+                    <td>{{ d[4].strftime('%d/%m/%Y') if d[4] else '' }}</td>
+                    <td>
+                        <button class="btn-detalhes" onclick="toggleDetalhes({{ d[0] }})">
+                            Ver Solução
+                        </button>
+                    </td>
+                </tr>
+                <tr id="detalhes-{{ d[0] }}" style="display:none;">
+                    <td colspan="6">
+                        <div class="solucao-texto {% if d[6] %}solucao-editada{% else %}solucao-ia{% endif %}">
+                            <strong>
                                 {% if d[6] %}
-                                    {{ d[6] }}
-                                {% elif d[5] %}
-                                    {{ d[5] }}
+                                    Solução (editada pelo administrador):
                                 {% else %}
-                                    Solução ainda não fornecida.
+                                    Solução sugerida (IA):
                                 {% endif %}
-                                <div class="info-solucao">
-                                    <strong>Área Responsável:</strong> {{ d[7] if d[7] else 'A definir' }}
-                                </div>
-                                {% if d[6] %}
-                                <div class="info-solucao" style="margin-top: 8px;">
-                                    <em>Observação: O administrador personalizou esta solução.</em>
-                                </div>
-                                {% endif %}
+                            </strong>
+                            <br><br>
+                            {% if d[6] %}
+                                {{ d[6] }}
+                            {% elif d[5] %}
+                                {{ d[5] }}
+                            {% else %}
+                                Solução ainda não fornecida.
+                            {% endif %}
+                            <div class="info-solucao">
+                                <strong>Área Responsável:</strong> {{ d[7] if d[7] else 'A definir' }}
                             </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
+                            <button class="btn-ouvir-solucao" onclick="lerTexto(this.previousElementSibling.innerText)">
+                                🔊 Ouvir Solução
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="sem-demandas">
             <p>Nenhuma demanda registrada ainda.</p>
-            <a href="{{ url_for('nova_demanda') }}" class="btn">Criar primeira demanda</a>
-            {% endif %}
+            <a href="{{ url_for('nova_demanda') }}" class="btn-novo" style="display: inline-block; margin-top: 15px;">+ Criar primeira demanda</a>
         </div>
+        {% endif %}
     </div>
+</div>
 
-    <script>
-        function toggleDetalhes(id) {
-            var row = document.getElementById('detalhes-' + id);
-            if (row.style.display === 'none') {
-                row.style.display = 'table-row';
-            } else {
-                row.style.display = 'none';
+<script>
+    function toggleDetalhes(id) {
+        var row = document.getElementById('detalhes-' + id);
+        if (row.style.display === 'none') {
+            row.style.display = 'table-row';
+            const solucaoTexto = row.querySelector('.solucao-texto').innerText;
+            if (typeof lerTexto === 'function') {
+                lerTexto('Solução para a demanda: ' + solucaoTexto);
             }
+        } else {
+            row.style.display = 'none';
         }
-    </script>
-</body>
-</html>
+    }
+</script>
+{% endblock %}

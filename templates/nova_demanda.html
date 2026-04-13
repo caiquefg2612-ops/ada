@@ -1,90 +1,465 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ADA - Nova Demanda</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
-        .navbar {
-            background: #1a1a2e;
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
+{% extends "base.html" %}
+
+{% block title %}Nova Demanda{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+    }
+
+    /* Header */
+    .header {
+        background: #1a1a2e;
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .header h2 {
+        font-size: 1.5rem;
+    }
+
+    .header h2 span {
+        color: #00d4ff;
+    }
+
+    .header a {
+        color: white;
+        text-decoration: none;
+        background: #0066B3;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: background 0.3s;
+    }
+
+    .header a:hover {
+        background: #004d8c;
+    }
+
+    /* Container principal */
+    .container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    /* Card do formulário */
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        padding: 35px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .form-card h1 {
+        color: #0066B3;
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+        border-left: 4px solid #009E2C;
+        padding-left: 15px;
+    }
+
+    /* Caixa de dicas */
+    .dicas-box {
+        background: #e8f4fd;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 25px 0;
+        border-left: 4px solid #0066B3;
+    }
+
+    .dicas-box strong {
+        color: #0066B3;
+        font-size: 1.1rem;
+    }
+
+    .dicas-box ul {
+        margin-top: 10px;
+        margin-left: 20px;
+    }
+
+    .dicas-box li {
+        margin: 5px 0;
+        color: #333;
+    }
+
+    .dica-dictar {
+        background: #fff3cd;
+        border-left-color: #ffc107;
+        margin-top: 15px;
+    }
+
+    /* Grupos do formulário */
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .form-group label .obrigatorio {
+        color: #e74c3c;
+        margin-left: 5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-family: 'Segoe UI', sans-serif;
+        transition: border-color 0.3s;
+        background: white;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #0066B3;
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    /* Linha do botão de ditar */
+    .input-com-botao {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .input-com-botao input,
+    .input-com-botao textarea {
+        flex: 1;
+    }
+
+    .btn-dictar {
+        background: #0066B3;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.3s;
+        white-space: nowrap;
+    }
+
+    .btn-dictar:hover {
+        background: #004d8c;
+    }
+
+    .btn-dictar:active {
+        transform: scale(0.98);
+    }
+
+    /* Textarea com botão */
+    .textarea-com-botao {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .textarea-com-botao textarea {
+        width: 100%;
+    }
+
+    .textarea-com-botao .btn-dictar {
+        align-self: flex-start;
+    }
+
+    /* Botão de envio */
+    .btn-enviar {
+        background: #009E2C;
+        color: white;
+        border: none;
+        padding: 14px 28px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        width: 100%;
+        transition: background 0.3s;
+        margin-top: 10px;
+    }
+
+    .btn-enviar:hover {
+        background: #007a22;
+    }
+
+    /* Divisória */
+    .divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 20px 0;
+    }
+
+    /* Responsivo */
+    @media (max-width: 600px) {
+        .form-card {
+            padding: 20px;
         }
-        .navbar a { color: white; text-decoration: none; }
-        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+        .input-com-botao {
+            flex-direction: column;
         }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input, textarea {
+
+        .btn-dictar {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 1rem;
+            justify-content: center;
         }
-        textarea { resize: vertical; min-height: 120px; }
-        button {
-            background: #009E2C;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-        button:hover { background: #007a22; }
-        .info {
-            background: #e8f4fd;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <h2>ADA</h2>
-        <a href="{{ url_for('dashboard_user') }}">Voltar</a>
-    </div>
 
-    <div class="container">
-        <div class="card">
-            <h1>Registrar Nova Demanda</h1>
+        .textarea-com-botao .btn-dictar {
+            width: 100%;
+        }
+    }
 
-            <div class="info">
-                <strong>Como descrever sua demanda?</strong><br>
-                Seja específico: local, tipo de barreira, impacto no seu trabalho.
+    /* Para o tema de alto contraste */
+    body.alto-contraste .form-card {
+        background: black;
+        border: 2px solid yellow;
+    }
+
+    body.alto-contraste .form-group input,
+    body.alto-contraste .form-group textarea {
+        background: black;
+        color: yellow;
+        border-color: yellow;
+    }
+
+    body.alto-contraste .dicas-box {
+        background: #333;
+        border-left-color: yellow;
+    }
+
+    body.alto-contraste .dicas-box li,
+    body.alto-contraste .dicas-box strong {
+        color: yellow;
+    }
+</style>
+
+<!-- Header -->
+<div class="header">
+    <h2>ADA <span>| Nova Demanda</span></h2>
+    <a href="{{ url_for('dashboard_user') }}">← Voltar ao Dashboard</a>
+</div>
+
+<!-- Conteúdo principal -->
+<div class="container">
+    <div class="form-card">
+        <h1>📝 Registrar Nova Demanda</h1>
+
+        <!-- Caixa de dicas -->
+        <div class="dicas-box">
+            <strong>💡 Como descrever sua demanda?</strong>
+            <ul>
+                <li>Seja específico sobre o local e o problema</li>
+                <li>Informe o tipo de barreira (rampa, elevador, software, etc)</li>
+                <li>Descreva como isso impacta seu trabalho</li>
+            </ul>
+        </div>
+
+        <div class="dicas-box dica-dictar">
+            <strong>🎤 Dica de Acessibilidade</strong>
+            <ul>
+                <li>Você pode <strong>falar</strong> sua demanda usando os botões "Ditar"</li>
+                <li>Clique no botão e fale normalmente - o sistema converte para texto</li>
+                <li>Ideal para pessoas com deficiência visual ou mobilidade reduzida</li>
+            </ul>
+        </div>
+
+        <!-- Formulário -->
+        <form method="POST" id="formDemanda">
+            <!-- Campo Título -->
+            <div class="form-group">
+                <label>Título <span class="obrigatorio">*</span></label>
+                <div class="input-com-botao">
+                    <input type="text" name="titulo" id="campoTitulo" required placeholder="Ex: Elevador quebrado, Falta intérprete de Libras...">
+                    <button type="button" class="btn-dictar" onclick="dictarParaCampo('campoTitulo')">
+                        🎤 Ditar Título
+                    </button>
+                </div>
             </div>
 
-            <form method="POST">
-                <div class="form-group">
-                    <label>Título *</label>
-                    <input type="text" name="titulo" required placeholder="Ex: Elevador quebrado">
+            <!-- Campo Descrição -->
+            <div class="form-group">
+                <label>Descrição detalhada <span class="obrigatorio">*</span></label>
+                <div class="textarea-com-botao">
+                    <textarea name="descricao" id="campoDescricao" required placeholder="Descreva o problema com detalhes...&#10;&#10;Exemplo: O elevador do prédio administrativo está quebrado há 3 dias. Tenho deficiência física e uso cadeira de rodas. Meu escritório fica no 7º andar e não consigo subir pela escada."></textarea>
+                    <button type="button" class="btn-dictar" onclick="dictarParaCampo('campoDescricao')">
+                        🎤 Ditar Descrição
+                    </button>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Descrição detalhada *</label>
-                    <textarea name="descricao" required placeholder="Descreva o problema com detalhes..."></textarea>
+            <!-- Campo Localização -->
+            <div class="form-group">
+                <label>Localização (opcional)</label>
+                <div class="input-com-botao">
+                    <input type="text" name="localizacao" id="campoLocalizacao" placeholder="Ex: Prédio A, 5º andar, Sala 502">
+                    <button type="button" class="btn-dictar" onclick="dictarParaCampo('campoLocalizacao')">
+                        🎤 Ditar Local
+                    </button>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label>Localização (opcional)</label>
-                    <input type="text" name="localizacao" placeholder="Ex: Prédio A, 3º andar">
-                </div>
+            <div class="divider"></div>
 
-                <button type="submit">Enviar Demanda</button>
-            </form>
-        </div>
+            <!-- Botão Enviar -->
+            <button type="submit" class="btn-enviar">
+                ✅ Enviar Demanda
+            </button>
+        </form>
     </div>
-</body>
-</html>
+</div>
+
+<script>
+    // Função para reconhecimento de voz
+    function dictarParaCampo(campoId) {
+        // Verifica suporte do navegador
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert('❌ Seu navegador não suporta reconhecimento de voz.\n\nUse Chrome, Edge ou Safari para esta funcionalidade.');
+            return;
+        }
+
+        const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        // Configurações
+        recognition.lang = 'pt-BR';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        // Mapeia ID do campo para nome amigável
+        const nomesCampos = {
+            'campoTitulo': 'título',
+            'campoDescricao': 'descrição',
+            'campoLocalizacao': 'localização'
+        };
+
+        const nomeCampo = nomesCampos[campoId] || 'campo';
+
+        // Feedback visual
+        const btn = event.target;
+        const textoOriginal = btn.innerHTML;
+        btn.innerHTML = '🎤 Ouvindo...';
+        btn.style.opacity = '0.7';
+
+        recognition.onstart = function() {
+            // Opcional: feedback adicional
+            console.log('Reconhecimento iniciado');
+        };
+
+        recognition.onresult = function(event) {
+            const textoFalado = event.results[0][0].transcript;
+            const campo = document.getElementById(campoId);
+
+            if (campo) {
+                // Se for textarea, preserva o que já tinha ou substitui
+                if (campo.tagName === 'TEXTAREA') {
+                    if (campo.value.trim() === '') {
+                        campo.value = textoFalado;
+                    } else {
+                        campo.value = campo.value + '\n' + textoFalado;
+                    }
+                } else {
+                    campo.value = textoFalado;
+                }
+
+                // Dispara evento para validação
+                campo.dispatchEvent(new Event('input', { bubbles: true }));
+
+                // Lê o que foi preenchido (para deficientes visuais)
+                if (typeof lerTexto === 'function') {
+                    lerTexto('Campo ' + nomeCampo + ' preenchido com: ' + textoFalado);
+                }
+
+                // Feedback visual
+                campo.style.borderColor = '#009E2C';
+                setTimeout(() => {
+                    campo.style.borderColor = '#e0e0e0';
+                }, 2000);
+            }
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Erro no reconhecimento:', event.error);
+            let mensagemErro = 'Erro ao reconhecer voz: ';
+
+            switch(event.error) {
+                case 'no-speech':
+                    mensagemErro += 'Nenhuma fala detectada. Tente novamente.';
+                    break;
+                case 'audio-capture':
+                    mensagemErro += 'Microfone não encontrado. Verifique se ele está conectado.';
+                    break;
+                case 'not-allowed':
+                    mensagemErro += 'Permissão do microfone negada. Autorize o acesso nas configurações do navegador.';
+                    break;
+                default:
+                    mensagemErro += event.error;
+            }
+
+            alert(mensagemErro);
+        };
+
+        recognition.onend = function() {
+            // Restaura o botão
+            btn.innerHTML = textoOriginal;
+            btn.style.opacity = '1';
+        };
+
+        // Inicia o reconhecimento
+        recognition.start();
+    }
+
+    // Adiciona validação antes de enviar
+    document.getElementById('formDemanda').addEventListener('submit', function(e) {
+        const titulo = document.getElementById('campoTitulo').value.trim();
+        const descricao = document.getElementById('campoDescricao').value.trim();
+
+        if (!titulo) {
+            alert('Por favor, preencha o título da demanda.');
+            document.getElementById('campoTitulo').focus();
+            e.preventDefault();
+            return;
+        }
+
+        if (!descricao) {
+            alert('Por favor, preencha a descrição da demanda.');
+            document.getElementById('campoDescricao').focus();
+            e.preventDefault();
+            return;
+        }
+
+        // Feedback visual de carregamento
+        const btnEnviar = document.querySelector('.btn-enviar');
+        btnEnviar.innerHTML = '⏳ Enviando...';
+        btnEnviar.disabled = true;
+    });
+</script>
+{% endblock %}

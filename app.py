@@ -51,9 +51,9 @@ def get_db_connection():
                 raise e
 
 
-# ==================== CONFIGURAÇÃO DA IA ====================
-CHAVE_API = ""
-URL_IA = ""
+
+CHAVE_API = "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"
+URL_IA = "https://openrouter.ai/api/v1/chat/completions"
 
 HEADERS = {
     "Authorization": f"Bearer {CHAVE_API}",
@@ -477,6 +477,10 @@ def relatorios():
     return render_template('relatorios.html',
                            stats_categoria=stats_categoria,
                            stats_status=stats_status)
+
+@app.route('/api/libras')
+def api_libras():
+    return render_template('libras.html')
 
 
 if __name__ == '__main__':

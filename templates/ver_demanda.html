@@ -1,254 +1,357 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ADA - Detalhes da Demanda</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
-        .navbar {
-            background: #1a1a2e;
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .navbar a { color: white; text-decoration: none; }
-        .container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .campo {
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-        .campo label {
-            font-weight: bold;
-            color: #0066B3;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .status {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-        .status-pendente { background: #ffc107; }
-        .status-em_andamento { background: #17a2b8; color: white; }
-        .status-resolvido { background: #28a745; color: white; }
-        select, button, textarea {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            font-size: 0.9rem;
-        }
-        button {
-            background: #0066B3;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover { background: #004d8c; }
-        .sugestao-area {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e8f4fd;
-            border-radius: 10px;
-        }
-        textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            margin: 10px 0;
-            font-family: inherit;
-        }
-        .solucao-editavel {
-            width: 100%;
-            min-height: 150px;
-            padding: 10px;
-            border: 2px solid #009E2C;
-            border-radius: 8px;
-            font-family: inherit;
-            margin-bottom: 10px;
-        }
-        .solucao-original {
-            background: #f0f2f5;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="navbar">
-        <h2>ADA Admin</h2>
-        <a href="{{ url_for('dashboard_admin') }}">Voltar</a>
-    </div>
+{% extends "base.html" %}
 
-    <div class="container">
-        <div class="card">
-            <h2>Detalhes da Demanda #{{ demanda[0] }}</h2>
+{% block title %}Detalhes da Demanda{% endblock %}
 
-            <div class="campo">
-                <label>Usuario:</label>
-                {{ demanda[12] }} ({{ demanda[13] }})
-            </div>
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-            <div class="campo">
-                <label>Deficiencia:</label>
-                {{ demanda[14] if demanda[14] else 'Nao informada' }}
-            </div>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+    }
 
-            <div class="campo">
-                <label>Titulo:</label>
-                {{ demanda[2] }}
-            </div>
+    .header {
+        background: #1a1a2e;
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
 
-            <div class="campo">
-                <label>Descricao:</label>
-                {{ demanda[3] }}
-            </div>
+    .header h2 {
+        font-size: 1.5rem;
+    }
 
-            <div class="campo">
-                <label>Localizacao:</label>
-                {{ demanda[4] if demanda[4] else 'Nao informado' }}
-            </div>
+    .header h2 span {
+        color: #00d4ff;
+    }
 
-            <div class="campo">
-                <label>Categoria:</label>
-                <strong>{{ demanda[5] }}</strong>
-            </div>
+    .header a {
+        color: white;
+        text-decoration: none;
+        background: #666;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: background 0.3s;
+    }
 
-            <div class="campo">
-                <label>Status:</label>
-                <select id="statusSelect">
-                    <option value="pendente" {% if demanda[6] == 'pendente' %}selected{% endif %}>Pendente</option>
-                    <option value="em_andamento" {% if demanda[6] == 'em_andamento' %}selected{% endif %}>Em Andamento</option>
-                    <option value="resolvido" {% if demanda[6] == 'resolvido' %}selected{% endif %}>Resolvido</option>
-                </select>
-                <button onclick="atualizarStatus()">Atualizar Status</button>
-            </div>
+    .header a:hover {
+        background: #555;
+    }
 
-            <div class="campo">
-                <label>Solucao Original (IA):</label>
-                <div class="solucao-original">
-                    {{ demanda[7] if demanda[7] else 'Nenhuma solucao gerada' }}
-                </div>
-            </div>
+    .container {
+        max-width: 1000px;
+        margin: 30px auto;
+        padding: 0 20px;
+    }
 
-            <div class="campo">
-                <label>Solucao Editada (o que o usuario vai ver):</label>
-                <textarea id="solucaoEditavel" class="solucao-editavel" rows="6" placeholder="Digite aqui a solucao que o usuario vai visualizar...">{% if demanda[11] %}{{ demanda[11] }}{% elif demanda[7] %}{{ demanda[7] }}{% else %}{% endif %}</textarea>
-                <button onclick="salvarSolucao()">Salvar Solucao</button>
-                <button onclick="copiarSolucaoIA()" style="background:#666;">Copiar Solucao da IA</button>
-            </div>
+    .card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
 
-            <div class="campo">
-                <label>Area Responsavel:</label>
-                {{ demanda[8] if demanda[8] else 'A definir' }}
-            </div>
+    .card h2 {
+        color: #0066B3;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        border-left: 4px solid #009E2C;
+        padding-left: 15px;
+    }
 
-            <div class="campo">
-                <label>Prazo Estimado:</label>
-                {{ demanda[9] if demanda[9] else 'A definir' }}
-            </div>
+    .card h3 {
+        color: #0066B3;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
 
-            <div class="campo">
-                <label>Data de Criacao:</label>
-                {{ demanda[10].strftime('%d/%m/%Y %H:%M') if demanda[10] else '' }}
+    .campo {
+        margin-bottom: 20px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 12px;
+    }
+
+    .campo label {
+        font-weight: bold;
+        color: #0066B3;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .status {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .status-PENDENTE {
+        background: #ffc107;
+        color: #333;
+    }
+
+    .status-EM_ANDAMENTO {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .status-RESOLVIDO {
+        background: #28a745;
+        color: white;
+    }
+
+    select, button, textarea {
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        font-size: 0.9rem;
+    }
+
+    button {
+        background: #0066B3;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    button:hover {
+        background: #004d8c;
+    }
+
+    .solucao-editavel {
+        width: 100%;
+        min-height: 150px;
+        padding: 12px;
+        border: 2px solid #009E2C;
+        border-radius: 12px;
+        font-family: inherit;
+        margin-bottom: 10px;
+    }
+
+    .solucao-original {
+        background: #f0f2f5;
+        padding: 12px;
+        border-radius: 10px;
+        margin-top: 10px;
+        font-size: 0.9rem;
+    }
+
+    .sugestao-area {
+        margin-top: 20px;
+        padding: 15px;
+        background: #e8f4fd;
+        border-radius: 12px;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-secundario {
+        background: #666;
+    }
+
+    .btn-secundario:hover {
+        background: #555;
+    }
+
+    .divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 20px 0;
+    }
+
+    /* Alto contraste */
+    body.alto-contraste .card {
+        background: black;
+        border: 1px solid yellow;
+    }
+
+    body.alto-contraste .campo {
+        background: #333;
+        color: yellow;
+    }
+
+    body.alto-contraste .solucao-original {
+        background: #333;
+        color: yellow;
+    }
+</style>
+
+<div class="header">
+    <h2>ADA Admin <span>| Detalhes</span></h2>
+    <a href="{{ url_for('dashboard_admin') }}">← Voltar</a>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>Detalhes da Demanda #{{ demanda[0] }}</h2>
+
+        <div class="campo">
+            <label>Usuário:</label>
+            {{ demanda[12] }} ({{ demanda[13] }})
+        </div>
+
+        <div class="campo">
+            <label>Deficiência:</label>
+            {{ demanda[14] if demanda[14] else 'Não informada' }}
+        </div>
+
+        <div class="campo">
+            <label>Título:</label>
+            {{ demanda[2] }}
+        </div>
+
+        <div class="campo">
+            <label>Descrição:</label>
+            {{ demanda[3] }}
+        </div>
+
+        <div class="campo">
+            <label>Localização:</label>
+            {{ demanda[4] if demanda[4] else 'Não informado' }}
+        </div>
+
+        <div class="campo">
+            <label>Categoria:</label>
+            <strong>{{ demanda[5] }}</strong>
+        </div>
+
+        <div class="campo">
+            <label>Status:</label>
+            <select id="statusSelect">
+                <option value="PENDENTE" {% if demanda[6] == 'PENDENTE' %}selected{% endif %}>PENDENTE</option>
+                <option value="EM_ANDAMENTO" {% if demanda[6] == 'EM_ANDAMENTO' %}selected{% endif %}>EM ANDAMENTO</option>
+                <option value="RESOLVIDO" {% if demanda[6] == 'RESOLVIDO' %}selected{% endif %}>RESOLVIDO</option>
+            </select>
+            <button onclick="atualizarStatus()" style="margin-left: 10px;">Atualizar Status</button>
+        </div>
+
+        <div class="campo">
+            <label>Solução Original (IA):</label>
+            <div class="solucao-original">
+                {{ demanda[7] if demanda[7] else 'Nenhuma solução gerada' }}
             </div>
         </div>
 
-        <div class="card">
-            <h3>Consultar IA para Nova Solucao</h3>
-            <textarea id="perguntaIA" rows="3" placeholder="Digite o que voce quer saber da IA... Ex: Sugira uma solucao mais barata ou Uma acao imediata para este caso"></textarea>
-            <button onclick="sugerirSolucao()">Perguntar para IA</button>
-            <div id="respostaIA" class="sugestao-area" style="display:none;"></div>
+        <div class="campo">
+            <label>Solução Editada (o que o usuário vai ver):</label>
+            <textarea id="solucaoEditavel" class="solucao-editavel" rows="6" placeholder="Digite aqui a solução que o usuário vai visualizar...">{% if demanda[11] %}{{ demanda[11] }}{% elif demanda[7] %}{{ demanda[7] }}{% else %}{% endif %}</textarea>
+            <div class="btn-group">
+                <button onclick="salvarSolucao()">Salvar Solução</button>
+                <button onclick="copiarSolucaoIA()" class="btn-secundario">Copiar Solução da IA</button>
+            </div>
+        </div>
+
+        <div class="campo">
+            <label>Área Responsável:</label>
+            {{ demanda[8] if demanda[8] else 'A definir' }}
+        </div>
+
+        <div class="campo">
+            <label>Prazo Estimado:</label>
+            {{ demanda[9] if demanda[9] else 'A definir' }}
+        </div>
+
+        <div class="campo">
+            <label>Data de Criação:</label>
+            {{ demanda[10].strftime('%d/%m/%Y %H:%M') if demanda[10] else '' }}
         </div>
     </div>
 
-    <script>
-        function atualizarStatus() {
-            const status = document.getElementById('statusSelect').value;
-            fetch('/admin/atualizar_status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ demanda_id: {{ demanda[0] }}, status: status })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.sucesso) {
-                    alert('Status atualizado com sucesso');
-                    location.reload();
-                }
-            });
-        }
+    <div class="card">
+        <h3>Consultar IA para Nova Solução</h3>
+        <textarea id="perguntaIA" rows="3" placeholder="Digite o que você quer saber da IA... Ex: Sugira uma solução mais barata ou Uma ação imediata para este caso"></textarea>
+        <button onclick="sugerirSolucao()" style="margin-top: 10px;">Perguntar para IA</button>
+        <div id="respostaIA" class="sugestao-area" style="display:none;"></div>
+    </div>
+</div>
 
-        function salvarSolucao() {
-            const solucao = document.getElementById('solucaoEditavel').value;
-            fetch('/admin/salvar_solucao', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ demanda_id: {{ demanda[0] }}, solucao: solucao })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.sucesso) {
-                    alert('Solucao salva com sucesso. O usuario agora pode visualiza-la.');
-                } else {
-                    alert('Erro ao salvar');
-                }
-            });
-        }
-
-        function copiarSolucaoIA() {
-            const solucaoIA = "{{ demanda[7] if demanda[7] else '' }}";
-            document.getElementById('solucaoEditavel').value = solucaoIA;
-            alert('Solucao da IA copiada. Nao esqueca de clicar em Salvar Solucao.');
-        }
-
-        function sugerirSolucao() {
-            const pergunta = document.getElementById('perguntaIA').value;
-            if (!pergunta) {
-                alert('Digite uma pergunta para a IA');
-                return;
+<script>
+    function atualizarStatus() {
+        const status = document.getElementById('statusSelect').value;
+        fetch('/admin/atualizar_status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ demanda_id: {{ demanda[0] }}, status: status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                alert('Status atualizado com sucesso');
+                location.reload();
             }
+        });
+    }
 
-            document.getElementById('respostaIA').style.display = 'block';
-            document.getElementById('respostaIA').innerHTML = 'Consultando IA...';
+    function salvarSolucao() {
+        const solucao = document.getElementById('solucaoEditavel').value;
+        fetch('/admin/salvar_solucao', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ demanda_id: {{ demanda[0] }}, solucao: solucao })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                alert('Solução salva com sucesso. O usuário agora pode visualizá-la.');
+            } else {
+                alert('Erro ao salvar');
+            }
+        });
+    }
 
-            fetch('/admin/sugerir_nova_solucao', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ demanda_id: {{ demanda[0] }}, pergunta: pergunta })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.solucao) {
-                    document.getElementById('respostaIA').innerHTML = '<strong>Resposta da IA:</strong><br>' + data.solucao + '<br><br><button onclick="copiarRespostaIA()">Copiar para o campo de solucao</button>';
-                } else {
-                    document.getElementById('respostaIA').innerHTML = 'Erro: ' + data.erro;
-                }
-            });
+    function copiarSolucaoIA() {
+        const solucaoIA = "{{ demanda[7] if demanda[7] else '' }}";
+        document.getElementById('solucaoEditavel').value = solucaoIA;
+        alert('Solução da IA copiada. Não esqueça de clicar em Salvar Solução.');
+    }
+
+    function sugerirSolucao() {
+        const pergunta = document.getElementById('perguntaIA').value;
+        if (!pergunta) {
+            alert('Digite uma pergunta para a IA');
+            return;
         }
 
-        function copiarRespostaIA() {
-            const resposta = document.getElementById('respostaIA').innerText;
-            const solucaoAtual = document.getElementById('solucaoEditavel').value;
-            const novaLinha = resposta.replace('Resposta da IA:', '').trim();
-            document.getElementById('solucaoEditavel').value = novaLinha + '\n\n' + solucaoAtual;
-            alert('Texto copiado! Nao esqueca de clicar em Salvar Solucao.');
-        }
-    </script>
-</body>
-</html>
+        document.getElementById('respostaIA').style.display = 'block';
+        document.getElementById('respostaIA').innerHTML = '⏳ Consultando IA...';
+
+        fetch('/admin/sugerir_nova_solucao', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ demanda_id: {{ demanda[0] }}, pergunta: pergunta })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.solucao) {
+                document.getElementById('respostaIA').innerHTML = '<strong>🤖 Resposta da IA:</strong><br>' + data.solucao + '<br><br><button onclick="copiarRespostaIA()" class="btn-secundario">📋 Copiar para o campo de solução</button>';
+            } else {
+                document.getElementById('respostaIA').innerHTML = 'Erro: ' + data.erro;
+            }
+        });
+    }
+
+    function copiarRespostaIA() {
+        const resposta = document.getElementById('respostaIA').innerText;
+        const solucaoAtual = document.getElementById('solucaoEditavel').value;
+        const novaLinha = resposta.replace('Resposta da IA:', '').trim();
+        document.getElementById('solucaoEditavel').value = novaLinha + '\n\n' + solucaoAtual;
+        alert('Texto copiado! Não esqueça de clicar em Salvar Solução.');
+    }
+</script>
+{% endblock %}

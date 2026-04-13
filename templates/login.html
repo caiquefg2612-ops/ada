@@ -1,86 +1,154 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ADA - Login</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0066B3 0%, #009E2C 100%);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .login-container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-        .login-container h1 {
-            text-align: center;
-            color: #0066B3;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 1rem;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #009E2C;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        button:hover { background: #007a22; }
-        .erro {
-            background: #fee;
-            color: #c00;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f0f2f5;
-            border-radius: 10px;
-            font-size: 0.85rem;
-        }
-        .criar-conta {
-            text-align: center;
-            margin-top: 15px;
-        }
-        .criar-conta a {
-            color: #0066B3;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #0066B3 0%, #009E2C 100%);
+        min-height: 100vh;
+    }
+
+    .container {
+        max-width: 450px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        width: 100%;
+    }
+
+    .login-card h1 {
+        color: #0066B3;
+        font-size: 2rem;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .subtitulo {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 0.9rem;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #0066B3;
+    }
+
+    .btn-entrar {
+        background: #009E2C;
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        width: 100%;
+        transition: background 0.3s;
+    }
+
+    .btn-entrar:hover {
+        background: #007a22;
+    }
+
+    .erro {
+        background: #fee;
+        color: #c00;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        text-align: center;
+        border-left: 4px solid #c00;
+    }
+
+    .info-box {
+        margin-top: 25px;
+        padding: 15px;
+        background: #f0f2f5;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+
+    .info-box strong {
+        color: #0066B3;
+    }
+
+    .criar-conta {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .criar-conta a {
+        color: #0066B3;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .criar-conta a:hover {
+        text-decoration: underline;
+    }
+
+    /* Alto contraste */
+    body.alto-contraste .login-card {
+        background: black;
+        border: 2px solid yellow;
+    }
+
+    body.alto-contraste .form-group input {
+        background: black;
+        color: yellow;
+        border-color: yellow;
+    }
+
+    body.alto-contraste .info-box {
+        background: #333;
+        color: yellow;
+    }
+</style>
+
+<div class="container">
+    <div class="login-card">
         <h1>ADA</h1>
-        <div style="text-align:center; margin-bottom:20px;">Agente de Diagnostico de Acessibilidade</div>
+        <div class="subtitulo">Agente de Diagnóstico de Acessibilidade</div>
 
         {% if erro %}
         <div class="erro">{{ erro }}</div>
@@ -88,21 +156,19 @@
 
         <form method="POST">
             <div class="form-group">
-                <label>Email</label>
+                <label>E-mail</label>
                 <input type="email" name="email" required placeholder="seu@email.com" value="admin@ada.com">
             </div>
             <div class="form-group">
                 <label>Senha</label>
                 <input type="password" name="senha" required placeholder="••••••" value="admin123">
             </div>
-            <button type="submit">Entrar</button>
+            <button type="submit" class="btn-entrar">Entrar</button>
         </form>
 
         <div class="criar-conta">
-            <a href="{{ url_for('criar_usuario_view') }}">Criar nova conta</a>
+            <a href="{{ url_for('criar_usuario_view') }}">+ Criar nova conta</a>
         </div>
-
-
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

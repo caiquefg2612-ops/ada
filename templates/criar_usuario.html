@@ -1,65 +1,142 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ADA - Criar Conta</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0066B3 0%, #009E2C 100%);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            width: 90%;
-            max-width: 450px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
-        h1 { text-align: center; color: #0066B3; margin-bottom: 20px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 1rem;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #009E2C;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        button:hover { background: #007a22; }
-        .voltar {
-            text-align: center;
-            margin-top: 15px;
-        }
-        .voltar a { color: #0066B3; text-decoration: none; }
-        .erro {
-            background: #fee;
-            color: #c00;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
+{% extends "base.html" %}
+
+{% block title %}Criar Conta{% endblock %}
+
+{% block content %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #0066B3 0%, #009E2C 100%);
+        min-height: 100vh;
+    }
+
+    .container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card {
+        background: white;
+        border-radius: 20px;
+        padding: 35px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        width: 100%;
+    }
+
+    .card h1 {
+        color: #0066B3;
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+        border-left: 4px solid #009E2C;
+        padding-left: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .form-group label .obrigatorio {
+        color: #e74c3c;
+        margin-left: 5px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: #0066B3;
+    }
+
+    .btn-criar {
+        background: #009E2C;
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        width: 100%;
+        transition: background 0.3s;
+        margin-top: 10px;
+    }
+
+    .btn-criar:hover {
+        background: #007a22;
+    }
+
+    .erro {
+        background: #fee;
+        color: #c00;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border-left: 4px solid #c00;
+    }
+
+    .voltar {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .voltar a {
+        color: #0066B3;
+        text-decoration: none;
+    }
+
+    .voltar a:hover {
+        text-decoration: underline;
+    }
+
+    .divider {
+        height: 1px;
+        background: #e0e0e0;
+        margin: 20px 0;
+    }
+
+    /* Alto contraste */
+    body.alto-contraste .card {
+        background: black;
+        border: 2px solid yellow;
+    }
+
+    body.alto-contraste .form-group input,
+    body.alto-contraste .form-group select {
+        background: black;
+        color: yellow;
+        border-color: yellow;
+    }
+</style>
+
+<div class="container">
+    <div class="card">
         <h1>Criar Conta</h1>
 
         {% if erro %}
@@ -68,17 +145,20 @@
 
         <form method="POST">
             <div class="form-group">
-                <label>Nome completo</label>
-                <input type="text" name="nome" required placeholder="Seu nome">
+                <label>Nome completo <span class="obrigatorio">*</span></label>
+                <input type="text" name="nome" required placeholder="Seu nome completo">
             </div>
+
             <div class="form-group">
-                <label>E-mail</label>
+                <label>E-mail <span class="obrigatorio">*</span></label>
                 <input type="email" name="email" required placeholder="seu@email.com">
             </div>
+
             <div class="form-group">
-                <label>Senha</label>
+                <label>Senha <span class="obrigatorio">*</span></label>
                 <input type="password" name="senha" required placeholder="••••••">
             </div>
+
             <div class="form-group">
                 <label>Tipo de deficiência (opcional)</label>
                 <select name="deficiencia">
@@ -91,12 +171,15 @@
                     <option value="Múltipla">Múltipla</option>
                 </select>
             </div>
-            <button type="submit">Criar Conta</button>
+
+            <div class="divider"></div>
+
+            <button type="submit" class="btn-criar">Criar Conta</button>
         </form>
 
         <div class="voltar">
-            <a href="{{ url_for('login') }}">Voltar para o login</a>
+            <a href="{{ url_for('login') }}">← Voltar para o login</a>
         </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
