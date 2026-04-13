@@ -52,8 +52,8 @@ def get_db_connection():
 
 
 # ==================== CONFIGURAÇÃO DA IA ====================
-CHAVE_API = "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"
-URL_IA = "https://openrouter.ai/api/v1/chat/completions"
+CHAVE_API = ""
+URL_IA = ""
 
 HEADERS = {
     "Authorization": f"Bearer {CHAVE_API}",
