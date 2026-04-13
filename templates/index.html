@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGA-IA - Triagem Inteligente</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #008542; /* Verde Petrobras */
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        button {
+            background-color: #008542;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #006834;
+        }
+        .resultado {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9f5ef;
+            border-left: 5px solid #008542;
+            border-radius: 4px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>SIGA-IA</h1>
+    <p><strong>Canal Único de Entrada:</strong> Descreva abaixo a demanda de acessibilidade (barreira, dificuldade ou sugestão).</p>
+
+    <form method="POST">
+        <textarea name="demanda" placeholder="Ex: O leitor de tela NVDA não está conseguindo ler os botões do sistema de ponto interno..." required>{{ demanda }}</textarea>
+        <button type="submit">Analisar Demanda com IA</button>
+    </form>
+
+    {% if resultado_ia %}
+    <div class="resultado">
+        <h3>Análise e Recomendação do Sistema:</h3>
+        <p>{{ resultado_ia | safe }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="footer">
+    Protótipo - Sistema Integrado de Gestão de Acessibilidade com IA
+</div>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>ADA - Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0066B3 0%, #009E2C 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .login-container h1 {
+            text-align: center;
+            color: #0066B3;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #009E2C;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background: #007a22; }
+        .erro {
+            background: #fee;
+            color: #c00;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f2f5;
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+        .criar-conta {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .criar-conta a {
+            color: #0066B3;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>ADA</h1>
+        <div style="text-align:center; margin-bottom:20px;">Agente de Diagnostico de Acessibilidade</div>
+
+        {% if erro %}
+        <div class="erro">{{ erro }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" required placeholder="seu@email.com" value="admin@ada.com">
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" name="senha" required placeholder="••••••" value="admin123">
+            </div>
+            <button type="submit">Entrar</button>
+        </form>
+
+        <div class="criar-conta">
+            <a href="{{ url_for('criar_usuario_view') }}">Criar nova conta</a>
+        </div>
+
+
+    </div>
+</body>
+</html>

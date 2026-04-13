@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>ADA - Criar Conta</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0066B3 0%, #009E2C 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        h1 { text-align: center; color: #0066B3; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #009E2C;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background: #007a22; }
+        .voltar {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .voltar a { color: #0066B3; text-decoration: none; }
+        .erro {
+            background: #fee;
+            color: #c00;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Criar Conta</h1>
+
+        {% if erro %}
+        <div class="erro">{{ erro }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label>Nome completo</label>
+                <input type="text" name="nome" required placeholder="Seu nome">
+            </div>
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" name="email" required placeholder="seu@email.com">
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" name="senha" required placeholder="••••••">
+            </div>
+            <div class="form-group">
+                <label>Tipo de deficiência (opcional)</label>
+                <select name="deficiencia">
+                    <option value="">Selecione...</option>
+                    <option value="Deficiência Visual">Deficiência Visual</option>
+                    <option value="Deficiência Auditiva">Deficiência Auditiva</option>
+                    <option value="Deficiência Física">Deficiência Física</option>
+                    <option value="Deficiência Intelectual">Deficiência Intelectual</option>
+                    <option value="Neurodivergente (TEA)">Neurodivergente (TEA)</option>
+                    <option value="Múltipla">Múltipla</option>
+                </select>
+            </div>
+            <button type="submit">Criar Conta</button>
+        </form>
+
+        <div class="voltar">
+            <a href="{{ url_for('login') }}">Voltar para o login</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>ADA - Nova Demanda</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+        .navbar {
+            background: #1a1a2e;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navbar a { color: white; text-decoration: none; }
+        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        textarea { resize: vertical; min-height: 120px; }
+        button {
+            background: #009E2C;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button:hover { background: #007a22; }
+        .info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h2>ADA</h2>
+        <a href="{{ url_for('dashboard_user') }}">Voltar</a>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h1>Registrar Nova Demanda</h1>
+
+            <div class="info">
+                <strong>Como descrever sua demanda?</strong><br>
+                Seja específico: local, tipo de barreira, impacto no seu trabalho.
+            </div>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" name="titulo" required placeholder="Ex: Elevador quebrado">
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição detalhada *</label>
+                    <textarea name="descricao" required placeholder="Descreva o problema com detalhes..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Localização (opcional)</label>
+                    <input type="text" name="localizacao" placeholder="Ex: Prédio A, 3º andar">
+                </div>
+
+                <button type="submit">Enviar Demanda</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
