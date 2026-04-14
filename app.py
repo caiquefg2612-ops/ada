@@ -20,7 +20,7 @@ def get_db_connection():
     try:
         conn = fdb.connect(
             host='localhost',
-            database=r'C:\Users\Aluno\Downloads\ada-main\BANCO.FDB',
+            database=r'C:\Users\Usuario\PycharmProjects\ADAAA\BANCO.FDB',
             user='SYSDBA',
             password='sysdba',
             charset='NONE'
@@ -49,7 +49,7 @@ def get_db_connection():
                 raise e
 
 
-CHAVE_API = "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"
+CHAVE_API = "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"
 URL_IA = "https://openrouter.ai/api/v1/chat/completions"
 
 HEADERS = {

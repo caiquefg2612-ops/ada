@@ -49,14 +49,14 @@
             border: 1px solid black;
         }
 
-        /* Filtros de Daltonismo */
-        body.protanopia {
+        /* Filtros de Daltonismo aplicados apenas ao conteúdo principal */
+        #conteudo-principal.protanopia {
             filter: url(#protanopia);
         }
-        body.deuteranopia {
+        #conteudo-principal.deuteranopia {
             filter: url(#deuteranopia);
         }
-        body.tritanopia {
+        #conteudo-principal.tritanopia {
             filter: url(#tritanopia);
         }
 
@@ -70,24 +70,25 @@
             font-size: 1.1rem;
         }
 
-        /* Barra fixa unificada - BOTÕES PERFEITAMENTE ALINHADOS */
+        /* Barra fixa centralizada na lateral - Botões um em cima do outro */
         .fixed-accessibility-bar {
             position: fixed;
-            bottom: 20px;
+            top: 50%; /* Centraliza na altura do site */
             right: 20px;
+            transform: translateY(-50%); /* Ajuste para o centro exato */
             display: flex;
-            gap: 10px;
+            flex-direction: column; /* Coloca os botões um em cima do outro */
+            gap: 15px;
             align-items: center;
-            justify-content: center;
             z-index: 1000;
         }
 
-        /* Botão de acessibilidade */
+        /* Botão de acessibilidade ADA */
         .acessibilidade-btn {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: #0066B3;
+            background: var(--primary);
             color: white;
             border: none;
             cursor: pointer;
@@ -99,62 +100,36 @@
             justify-content: center;
             margin: 0;
             padding: 0;
+            order: 2; /* Garante que o botão ADA fique abaixo do VLibras */
         }
 
         .acessibilidade-btn:hover {
             transform: scale(1.1);
         }
 
-        /* Container do VLibras - Forçando alinhamento perfeito */
-        #vlibras {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 0;
-            width: 50px;
-            height: 50px;
+        /* Design original do VLibras */
+        [vw] {
+            position: relative !important;
+            display: block !important;
+            order: 1; /* VLibras fica no topo */
         }
 
-        /* Força o botão do VLibras a ficar exatamente do mesmo tamanho e alinhado */
         [vw] [vw-access-button] {
             position: relative !important;
-            display: flex !important;
-            width: 50px !important;
-            height: 50px !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            transform: none !important;
-            border-radius: 50% !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
-            align-items: center !important;
-            justify-content: center !important;
             top: 0 !important;
             left: 0 !important;
-            right: auto !important;
-            bottom: auto !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            margin: 0 !important;
+            transform: none !important;
         }
 
-        /* Remove qualquer elemento extra do VLibras que possa causar desalinhamento */
-        [vw] [vw-access-button] > * {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-
-        [vw] .vw-plugin-wrapper {
-            display: none !important;
-        }
-
-        /* Remove o estilo padrão do VLibras que pode interferir */
-        .vw-plugin-top-wrapper {
-            display: none !important;
-        }
-
-        /* Painel de acessibilidade (flutuante) */
+        /* Painel de acessibilidade (ajustado para lateral) */
         .acessibilidade-painel {
             position: fixed;
-            bottom: 80px;
-            right: 20px;
+            top: 50%;
+            right: 80px;
+            transform: translateY(-50%);
             background: white;
             border-radius: 10px;
             padding: 15px;
@@ -179,7 +154,7 @@
             width: 100%;
             margin: 5px 0;
             padding: 8px;
-            background: #0066B3;
+            background: var(--primary);
             color: white;
             border: none;
             border-radius: 5px;
@@ -189,6 +164,7 @@
 
         .acessibilidade-painel button:hover {
             background: #004d8c;
+            opacity: 0.9;
         }
 
         /* Notificação visual */
@@ -205,17 +181,15 @@
         /* Responsividade */
         @media (max-width: 480px) {
             .fixed-accessibility-bar {
-                bottom: 15px;
-                right: 15px;
-                gap: 8px;
+                right: 10px;
+                gap: 10px;
             }
-            .acessibilidade-btn, #vlibras, [vw] [vw-access-button] {
-                width: 44px !important;
-                height: 44px !important;
+            .acessibilidade-btn {
+                width: 44px;
+                height: 44px;
             }
             .acessibilidade-painel {
-                right: 15px;
-                bottom: 70px;
+                right: 70px;
                 min-width: 200px;
             }
         }
@@ -223,44 +197,21 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- SVG com filtros para daltonismo -->
     <svg xmlns="http://www.w3.org/2000/svg" style="position: absolute; width: 0; height: 0; visibility: hidden;">
         <defs>
             <filter id="protanopia" color-interpolation-filters="sRGB">
-                <feColorMatrix type="matrix" values="
-                    0.567, 0.433, 0, 0, 0,
-                    0.558, 0.442, 0, 0, 0,
-                    0, 0.242, 0.758, 0, 0,
-                    0, 0, 0, 1, 0
-                "></feColorMatrix>
+                <feColorMatrix type="matrix" values="0.567, 0.433, 0, 0, 0, 0.558, 0.442, 0, 0, 0, 0, 0.242, 0.758, 0, 0, 0, 0, 0, 1, 0"></feColorMatrix>
             </filter>
             <filter id="deuteranopia" color-interpolation-filters="sRGB">
-                <feColorMatrix type="matrix" values="
-                    0.625, 0.375, 0, 0, 0,
-                    0.7, 0.3, 0, 0, 0,
-                    0, 0.3, 0.7, 0, 0,
-                    0, 0, 0, 1, 0
-                "></feColorMatrix>
+                <feColorMatrix type="matrix" values="0.625, 0.375, 0, 0, 0, 0.7, 0.3, 0, 0, 0, 0, 0.3, 0.7, 0, 0, 0, 0, 0, 1, 0"></feColorMatrix>
             </filter>
             <filter id="tritanopia" color-interpolation-filters="sRGB">
-                <feColorMatrix type="matrix" values="
-                    0.95, 0.05, 0, 0, 0,
-                    0, 0.433, 0.567, 0, 0,
-                    0, 0.475, 0.525, 0, 0,
-                    0, 0, 0, 1, 0
-                "></feColorMatrix>
+                <feColorMatrix type="matrix" values="0.95, 0.05, 0, 0, 0, 0, 0.433, 0.567, 0, 0, 0, 0.475, 0.525, 0, 0, 0, 0, 0, 1, 0"></feColorMatrix>
             </filter>
         </defs>
     </svg>
 
-    <!-- Barra fixa unificada: botões PERFEITAMENTE ALINHADOS -->
     <div class="fixed-accessibility-bar">
-        <!-- Botão de Acessibilidade -->
-        <button class="acessibilidade-btn" onclick="togglePainelAcessibilidade()" aria-label="Opções de Acessibilidade">
-            ♿
-        </button>
-
-        <!-- VLibras -->
         <div id="vlibras">
             <div vw class="enabled">
                 <div vw-access-button class="active"></div>
@@ -269,9 +220,12 @@
                 </div>
             </div>
         </div>
+
+        <button class="acessibilidade-btn" onclick="togglePainelAcessibilidade()" aria-label="Opções de Acessibilidade">
+            ♿
+        </button>
     </div>
 
-    <!-- Painel de acessibilidade (flutuante) -->
     <div id="painelAcessibilidade" class="acessibilidade-painel">
         <h4>♿ Opções de Acessibilidade</h4>
         <button onclick="toggleAltoContraste()" id="btnContraste">Alto Contraste</button>
@@ -290,25 +244,12 @@
         <button onclick="pararLeitura()">⏹️ Parar Leitura</button>
     </div>
 
-    <!-- Scripts VLibras e funções -->
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>
-        // Inicialização segura do VLibras
         function initVLibras() {
             if (typeof window.VLibras !== 'undefined' && window.VLibras.Widget) {
                 try {
                     new window.VLibras.Widget('https://vlibras.gov.br/app');
-                    console.log('VLibras inicializado');
-
-                    // Força o alinhamento após o carregamento
-                    setTimeout(function() {
-                        const vwButton = document.querySelector('[vw] [vw-access-button]');
-                        if (vwButton) {
-                            vwButton.style.position = 'relative';
-                            vwButton.style.top = '0';
-                            vwButton.style.left = '0';
-                        }
-                    }, 100);
                 } catch(e) {
                     console.error('Erro VLibras:', e);
                 }
@@ -321,12 +262,7 @@
         } else {
             initVLibras();
         }
-    </script>
 
-    <script>
-        // ==================== FUNÇÕES DE ACESSIBILIDADE ====================
-
-        // Alto Contraste (desativa daltonismo se ativado)
         function toggleAltoContraste() {
             removerDaltonismo();
             document.body.classList.toggle('alto-contraste');
@@ -334,31 +270,31 @@
             if (document.body.classList.contains('alto-contraste')) {
                 btn.textContent = 'Contraste Normal';
                 localStorage.setItem('altoContraste', 'true');
-                localStorage.removeItem('daltonismo');
             } else {
                 btn.textContent = 'Alto Contraste';
                 localStorage.setItem('altoContraste', 'false');
             }
         }
 
-        // Daltonismo
         function aplicarDaltonismo(tipo) {
-            if (document.body.classList.contains('alto-contraste')) {
-                document.body.classList.remove('alto-contraste');
-                document.getElementById('btnContraste').textContent = 'Alto Contraste';
-                localStorage.setItem('altoContraste', 'false');
-            }
-            document.body.classList.remove('protanopia', 'deuteranopia', 'tritanopia');
-            document.body.classList.add(tipo);
+            const conteudo = document.getElementById('conteudo-principal');
+
+            // Remove os filtros anteriores do conteúdo
+            conteudo.classList.remove('protanopia', 'deuteranopia', 'tritanopia');
+            // Remove o alto contraste do body (mantendo sua lógica original)
+            document.body.classList.remove('alto-contraste');
+
+            // Aplica o novo filtro apenas no conteúdo
+            conteudo.classList.add(tipo);
             localStorage.setItem('daltonismo', tipo);
         }
 
         function removerDaltonismo() {
-            document.body.classList.remove('protanopia', 'deuteranopia', 'tritanopia');
+            const conteudo = document.getElementById('conteudo-principal');
+            conteudo.classList.remove('protanopia', 'deuteranopia', 'tritanopia');
             localStorage.removeItem('daltonismo');
         }
 
-        // Fonte
         function aumentarFonte() {
             let tamanho = parseInt(localStorage.getItem('tamanhoFonte') || '16');
             tamanho = Math.min(tamanho + 2, 28);
@@ -378,19 +314,15 @@
             localStorage.setItem('tamanhoFonte', '16');
         }
 
-        // Painel
         function togglePainelAcessibilidade() {
-            const painel = document.getElementById('painelAcessibilidade');
-            painel.classList.toggle('ativo');
+            document.getElementById('painelAcessibilidade').classList.toggle('ativo');
         }
 
-        // Leitor de tela
         let utteranceAtual = null;
         function lerTexto(texto) {
             pararLeitura();
             utteranceAtual = new SpeechSynthesisUtterance(texto);
             utteranceAtual.lang = 'pt-BR';
-            utteranceAtual.rate = 0.9;
             window.speechSynthesis.speak(utteranceAtual);
         }
 
@@ -401,87 +333,31 @@
             }
         }
 
-        // Reconhecimento de voz
-        let recognition = null;
         function startSpeechRecognition() {
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-                recognition = new SpeechRecognition();
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
                 recognition.lang = 'pt-BR';
-                recognition.continuous = false;
-                recognition.interimResults = false;
-
-                recognition.onstart = function() {
-                    alert('🎤 Ouvindo... Fale agora!');
+                recognition.onstart = () => alert('🎤 Ouvindo...');
+                recognition.onresult = (event) => {
+                    alert('Você disse: ' + event.results[0][0].transcript);
                 };
-
-                recognition.onresult = function(event) {
-                    const textoFalado = event.results[0][0].transcript;
-                    const inputAtivo = document.activeElement;
-                    if (inputAtivo && (inputAtivo.tagName === 'INPUT' || inputAtivo.tagName === 'TEXTAREA')) {
-                        inputAtivo.value = textoFalado;
-                        inputAtivo.dispatchEvent(new Event('input', { bubbles: true }));
-                    } else {
-                        const descricao = document.querySelector('textarea[name="descricao"], input[name="descricao"]');
-                        if (descricao) {
-                            descricao.value = textoFalado;
-                            descricao.dispatchEvent(new Event('input', { bubbles: true }));
-                        }
-                    }
-                    lerTexto('Você disse: ' + textoFalado);
-                };
-
-                recognition.onerror = function(event) {
-                    alert('Erro no reconhecimento de voz: ' + event.error);
-                };
-
                 recognition.start();
             } else {
-                alert('Seu navegador não suporta reconhecimento de voz. Use Chrome, Edge ou Safari.');
+                alert('Navegador não suporta.');
             }
         }
 
-        // Carregar preferências salvas
         window.onload = function() {
-            if (localStorage.getItem('altoContraste') === 'true') {
-                document.body.classList.add('alto-contraste');
-                document.getElementById('btnContraste').textContent = 'Contraste Normal';
-            }
+            if (localStorage.getItem('altoContraste') === 'true') toggleAltoContraste();
             const daltonismo = localStorage.getItem('daltonismo');
-            if (daltonismo && ['protanopia', 'deuteranopia', 'tritanopia'].includes(daltonismo)) {
-                document.body.classList.add(daltonismo);
-            }
+            if (daltonismo) aplicarDaltonismo(daltonismo);
             const tamanhoFonte = localStorage.getItem('tamanhoFonte');
-            if (tamanhoFonte) {
-                document.body.style.fontSize = tamanhoFonte + 'px';
-            }
+            if (tamanhoFonte) document.body.style.fontSize = tamanhoFonte + 'px';
         };
-
-        // Botões de leitura automática nos textos
-        function adicionarBotoesLeitura() {
-            const textosParaLer = document.querySelectorAll('.card p, .campo, .solucao-texto, .bubble');
-            textosParaLer.forEach(el => {
-                if (!el.querySelector('.ler-btn')) {
-                    const btn = document.createElement('button');
-                    btn.textContent = '🔊';
-                    btn.className = 'ler-btn';
-                    btn.style.background = 'none';
-                    btn.style.border = 'none';
-                    btn.style.cursor = 'pointer';
-                    btn.style.fontSize = '1rem';
-                    btn.style.marginLeft = '8px';
-                    btn.onclick = (e) => {
-                        e.stopPropagation();
-                        lerTexto(el.innerText);
-                    };
-                    el.style.position = 'relative';
-                    el.appendChild(btn);
-                }
-            });
-        }
-        document.addEventListener('DOMContentLoaded', adicionarBotoesLeitura);
     </script>
 
-    {% block content %}{% endblock %}
+    <div id="conteudo-principal">
+        {% block content %}{% endblock %}
+    </div>
 </body>
 </html>
