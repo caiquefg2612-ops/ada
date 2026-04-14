@@ -20,6 +20,8 @@
             background: var(--bg-color);
             color: var(--text-color);
             transition: all 0.3s ease;
+            margin: 0;
+            padding: 0;
         }
 
         /* Tema de Alto Contraste */
@@ -47,6 +49,17 @@
             border: 1px solid black;
         }
 
+        /* Filtros de Daltonismo */
+        body.protanopia {
+            filter: url(#protanopia);
+        }
+        body.deuteranopia {
+            filter: url(#deuteranopia);
+        }
+        body.tritanopia {
+            filter: url(#tritanopia);
+        }
+
         /* Fonte acessível */
         body.fonte-grande {
             font-size: 1.2rem;
@@ -57,17 +70,18 @@
             font-size: 1.1rem;
         }
 
-        /* Botão de acessibilidade fixo */
-        .acessibilidade-menu {
+        /* Barra fixa unificada (acessibilidade + VLibras) */
+        .fixed-accessibility-bar {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            z-index: 999;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 12px;          /* espaçamento entre os botões */
+            align-items: center; /* alinhamento vertical */
+            z-index: 1000;
         }
 
+        /* Botão de acessibilidade */
         .acessibilidade-btn {
             width: 50px;
             height: 50px;
@@ -76,15 +90,19 @@
             color: white;
             border: none;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .acessibilidade-btn:hover {
             transform: scale(1.1);
         }
 
+        /* Painel de acessibilidade (flutuante) */
         .acessibilidade-painel {
             position: fixed;
             bottom: 80px;
@@ -94,12 +112,18 @@
             padding: 15px;
             box-shadow: 0 2px 20px rgba(0,0,0,0.2);
             display: none;
-            z-index: 1000;
-            min-width: 200px;
+            z-index: 1001;
+            min-width: 220px;
+            max-width: 280px;
         }
 
         .acessibilidade-painel.ativo {
             display: block;
+        }
+
+        .acessibilidade-painel h4 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
         }
 
         .acessibilidade-painel button {
@@ -112,14 +136,31 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 0.9rem;
         }
 
-        /* VLibras */
+        .acessibilidade-painel button:hover {
+            background: #004d8c;
+        }
+
+        /* VLibras - removemos o posicionamento fixo original e adaptamos para a barra */
         #vlibras {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 999;
+            display: inline-block;
+            line-height: 0;      /* remove espaço extra de linha */
+        }
+
+        /* Força o botão do VLibras a ficar inline e do mesmo tamanho */
+        [vw] [vw-access-button] {
+            position: relative !important;
+            display: flex !important;
+            width: 50px !important;
+            height: 50px !important;
+            margin: 0 !important;
+            transform: none !important;
+            border-radius: 50% !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
 
         /* Notificação visual */
@@ -132,56 +173,155 @@
             50% { background-color: yellow; color: black; }
             100% { background-color: transparent; }
         }
+
+        /* Responsividade */
+        @media (max-width: 480px) {
+            .fixed-accessibility-bar {
+                bottom: 15px;
+                right: 15px;
+                gap: 8px;
+            }
+            .acessibilidade-btn, [vw] [vw-access-button] {
+                width: 44px !important;
+                height: 44px !important;
+            }
+            .acessibilidade-painel {
+                right: 15px;
+                bottom: 70px;
+                min-width: 200px;
+            }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Menu de Acessibilidade -->
-    <div class="acessibilidade-menu">
+    <!-- SVG com filtros para daltonismo -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="position: absolute; width: 0; height: 0; visibility: hidden;">
+        <defs>
+            <!-- Filtro para Protanopia (deficiência em vermelho) -->
+            <filter id="protanopia" color-interpolation-filters="sRGB">
+                <feColorMatrix type="matrix" values="
+                    0.567, 0.433, 0, 0, 0,
+                    0.558, 0.442, 0, 0, 0,
+                    0, 0.242, 0.758, 0, 0,
+                    0, 0, 0, 1, 0
+                "></feColorMatrix>
+            </filter>
+            <!-- Filtro para Deuteranopia (deficiência em verde) -->
+            <filter id="deuteranopia" color-interpolation-filters="sRGB">
+                <feColorMatrix type="matrix" values="
+                    0.625, 0.375, 0, 0, 0,
+                    0.7, 0.3, 0, 0, 0,
+                    0, 0.3, 0.7, 0, 0,
+                    0, 0, 0, 1, 0
+                "></feColorMatrix>
+            </filter>
+            <!-- Filtro para Tritanopia (deficiência em azul) -->
+            <filter id="tritanopia" color-interpolation-filters="sRGB">
+                <feColorMatrix type="matrix" values="
+                    0.95, 0.05, 0, 0, 0,
+                    0, 0.433, 0.567, 0, 0,
+                    0, 0.475, 0.525, 0, 0,
+                    0, 0, 0, 1, 0
+                "></feColorMatrix>
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- Barra fixa unificada: botão de acessibilidade + VLibras -->
+    <div class="fixed-accessibility-bar">
         <button class="acessibilidade-btn" onclick="togglePainelAcessibilidade()" aria-label="Opções de Acessibilidade">
             ♿
         </button>
-    </div>
-
-    <div id="painelAcessibilidade" class="acessibilidade-painel">
-        <h4>Opções de Acessibilidade</h4>
-        <button onclick="toggleAltoContraste()" id="btnContraste">Alto Contraste</button>
-        <button onclick="aumentarFonte()" id="btnAumentarFonte">Aumentar Fonte +</button>
-        <button onclick="diminuirFonte()" id="btnDiminuirFonte">Diminuir Fonte -</button>
-        <button onclick="resetarFonte()" id="btnResetarFonte">Fonte Normal</button>
-        <hr>
-        <button onclick="startSpeechRecognition()" id="btnDictar">🎤 Ditar (Fala para Texto)</button>
-        <button onclick="pararLeitura()" id="btnPararLeitura">⏹️ Parar Leitura</button>
-    </div>
-
-    <!-- VLibras (para deficientes auditivos) -->
-    <div id="vlibras">
-        <div vw class="enabled">
-            <div vw-access-button class="active"></div>
-            <div vw-plugin-wrapper>
-                <div class="vw-plugin-top-wrapper"></div>
+        <!-- VLibras -->
+        <div id="vlibras">
+            <div vw class="enabled">
+                <div vw-access-button class="active"></div>
+                <div vw-plugin-wrapper>
+                    <div class="vw-plugin-top-wrapper"></div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Painel de acessibilidade -->
+    <div id="painelAcessibilidade" class="acessibilidade-painel">
+        <h4>♿ Opções de Acessibilidade</h4>
+        <button onclick="toggleAltoContraste()" id="btnContraste">Alto Contraste</button>
+        <hr>
+        <h4>🎨 Simulação de Daltonismo</h4>
+        <button onclick="aplicarDaltonismo('protanopia')">🔴 Protanopia (Vermelho)</button>
+        <button onclick="aplicarDaltonismo('deuteranopia')">🟢 Deuteranopia (Verde)</button>
+        <button onclick="aplicarDaltonismo('tritanopia')">🔵 Tritanopia (Azul)</button>
+        <button onclick="removerDaltonismo()">❌ Remover filtros</button>
+        <hr>
+        <button onclick="aumentarFonte()">🔍 Aumentar Fonte +</button>
+        <button onclick="diminuirFonte()">🔍 Diminuir Fonte -</button>
+        <button onclick="resetarFonte()">📄 Fonte Normal</button>
+        <hr>
+        <button onclick="startSpeechRecognition()">🎤 Ditar (Fala para Texto)</button>
+        <button onclick="pararLeitura()">⏹️ Parar Leitura</button>
+    </div>
+
+    <!-- Scripts VLibras e funções -->
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>
-        // Inicializar VLibras
-        new window.VLibras.Widget('https://vlibras.gov.br/app');
+        // Inicialização segura do VLibras
+        function initVLibras() {
+            if (typeof window.VLibras !== 'undefined' && window.VLibras.Widget) {
+                try {
+                    new window.VLibras.Widget('https://vlibras.gov.br/app');
+                    console.log('VLibras inicializado');
+                } catch(e) {
+                    console.error('Erro VLibras:', e);
+                }
+            } else {
+                setTimeout(initVLibras, 500);
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initVLibras);
+        } else {
+            initVLibras();
+        }
+    </script>
 
+    <script>
         // ==================== FUNÇÕES DE ACESSIBILIDADE ====================
 
-        // Alto Contraste
+        // Alto Contraste (desativa daltonismo se ativado)
         function toggleAltoContraste() {
+            // Se algum filtro de daltonismo estiver ativo, remove
+            removerDaltonismo();
             document.body.classList.toggle('alto-contraste');
             const btn = document.getElementById('btnContraste');
             if (document.body.classList.contains('alto-contraste')) {
                 btn.textContent = 'Contraste Normal';
                 localStorage.setItem('altoContraste', 'true');
+                localStorage.removeItem('daltonismo');
             } else {
                 btn.textContent = 'Alto Contraste';
                 localStorage.setItem('altoContraste', 'false');
             }
+        }
+
+        // Daltonismo
+        function aplicarDaltonismo(tipo) {
+            // Remove alto contraste se ativo
+            if (document.body.classList.contains('alto-contraste')) {
+                document.body.classList.remove('alto-contraste');
+                document.getElementById('btnContraste').textContent = 'Alto Contraste';
+                localStorage.setItem('altoContraste', 'false');
+            }
+            // Remove classes anteriores
+            document.body.classList.remove('protanopia', 'deuteranopia', 'tritanopia');
+            document.body.classList.add(tipo);
+            localStorage.setItem('daltonismo', tipo);
+        }
+
+        function removerDaltonismo() {
+            document.body.classList.remove('protanopia', 'deuteranopia', 'tritanopia');
+            localStorage.removeItem('daltonismo');
         }
 
         // Fonte
@@ -204,15 +344,14 @@
             localStorage.setItem('tamanhoFonte', '16');
         }
 
-        // Painel de acessibilidade
+        // Painel
         function togglePainelAcessibilidade() {
             const painel = document.getElementById('painelAcessibilidade');
             painel.classList.toggle('ativo');
         }
 
-        // Leitor de tela (Speech Synthesis)
+        // Leitor de tela
         let utteranceAtual = null;
-
         function lerTexto(texto) {
             pararLeitura();
             utteranceAtual = new SpeechSynthesisUtterance(texto);
@@ -228,9 +367,8 @@
             }
         }
 
-        // Reconhecimento de Voz (Speech-to-Text)
+        // Reconhecimento de voz
         let recognition = null;
-
         function startSpeechRecognition() {
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
@@ -269,19 +407,15 @@
             }
         }
 
-        // Notificação visual
-        function alertaVisual() {
-            const body = document.body;
-            body.classList.add('alerta-visual');
-            setTimeout(() => {
-                body.classList.remove('alerta-visual');
-            }, 1500);
-        }
-
         // Carregar preferências salvas
         window.onload = function() {
             if (localStorage.getItem('altoContraste') === 'true') {
                 document.body.classList.add('alto-contraste');
+                document.getElementById('btnContraste').textContent = 'Contraste Normal';
+            }
+            const daltonismo = localStorage.getItem('daltonismo');
+            if (daltonismo && ['protanopia', 'deuteranopia', 'tritanopia'].includes(daltonismo)) {
+                document.body.classList.add(daltonismo);
             }
             const tamanhoFonte = localStorage.getItem('tamanhoFonte');
             if (tamanhoFonte) {
@@ -289,7 +423,7 @@
             }
         };
 
-        // Adicionar botão de leitura em todos os textos clicáveis
+        // Botões de leitura automática nos textos
         function adicionarBotoesLeitura() {
             const textosParaLer = document.querySelectorAll('.card p, .campo, .solucao-texto, .bubble');
             textosParaLer.forEach(el => {
@@ -311,7 +445,6 @@
                 }
             });
         }
-
         document.addEventListener('DOMContentLoaded', adicionarBotoesLeitura);
     </script>
 

@@ -22,10 +22,10 @@ def get_db_connection():
     try:
         conn = fdb.connect(
             host='localhost',
-            database=r'C:\Users\Usuario\Downloads\BANCO.FDB',
+            database=r'C:\Users\Aluno\Downloads\ada-main\BANCO.FDB',
             user='SYSDBA',
-            password='SYSDBA',
-            charset='UTF8'
+            password='sysdba',
+            charset='NONE'
         )
         return conn
     except:
@@ -52,7 +52,7 @@ def get_db_connection():
 
 
 
-CHAVE_API = "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"
+CHAVE_API = "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"
 URL_IA = "https://openrouter.ai/api/v1/chat/completions"
 
 HEADERS = {
