@@ -70,14 +70,15 @@
             font-size: 1.1rem;
         }
 
-        /* Barra fixa unificada (acessibilidade + VLibras) */
+        /* Barra fixa unificada - BOTÕES PERFEITAMENTE ALINHADOS */
         .fixed-accessibility-bar {
             position: fixed;
             bottom: 20px;
             right: 20px;
             display: flex;
-            gap: 12px;          /* espaçamento entre os botões */
-            align-items: center; /* alinhamento vertical */
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
             z-index: 1000;
         }
 
@@ -96,10 +97,57 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin: 0;
+            padding: 0;
         }
 
         .acessibilidade-btn:hover {
             transform: scale(1.1);
+        }
+
+        /* Container do VLibras - Forçando alinhamento perfeito */
+        #vlibras {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 0;
+            width: 50px;
+            height: 50px;
+        }
+
+        /* Força o botão do VLibras a ficar exatamente do mesmo tamanho e alinhado */
+        [vw] [vw-access-button] {
+            position: relative !important;
+            display: flex !important;
+            width: 50px !important;
+            height: 50px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transform: none !important;
+            border-radius: 50% !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
+            align-items: center !important;
+            justify-content: center !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: auto !important;
+            bottom: auto !important;
+        }
+
+        /* Remove qualquer elemento extra do VLibras que possa causar desalinhamento */
+        [vw] [vw-access-button] > * {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        [vw] .vw-plugin-wrapper {
+            display: none !important;
+        }
+
+        /* Remove o estilo padrão do VLibras que pode interferir */
+        .vw-plugin-top-wrapper {
+            display: none !important;
         }
 
         /* Painel de acessibilidade (flutuante) */
@@ -143,26 +191,6 @@
             background: #004d8c;
         }
 
-        /* VLibras - removemos o posicionamento fixo original e adaptamos para a barra */
-        #vlibras {
-            display: inline-block;
-            line-height: 0;      /* remove espaço extra de linha */
-        }
-
-        /* Força o botão do VLibras a ficar inline e do mesmo tamanho */
-        [vw] [vw-access-button] {
-            position: relative !important;
-            display: flex !important;
-            width: 50px !important;
-            height: 50px !important;
-            margin: 0 !important;
-            transform: none !important;
-            border-radius: 50% !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-
         /* Notificação visual */
         .alerta-visual {
             animation: piscar 0.5s ease-in-out 3;
@@ -181,7 +209,7 @@
                 right: 15px;
                 gap: 8px;
             }
-            .acessibilidade-btn, [vw] [vw-access-button] {
+            .acessibilidade-btn, #vlibras, [vw] [vw-access-button] {
                 width: 44px !important;
                 height: 44px !important;
             }
@@ -198,7 +226,6 @@
     <!-- SVG com filtros para daltonismo -->
     <svg xmlns="http://www.w3.org/2000/svg" style="position: absolute; width: 0; height: 0; visibility: hidden;">
         <defs>
-            <!-- Filtro para Protanopia (deficiência em vermelho) -->
             <filter id="protanopia" color-interpolation-filters="sRGB">
                 <feColorMatrix type="matrix" values="
                     0.567, 0.433, 0, 0, 0,
@@ -207,7 +234,6 @@
                     0, 0, 0, 1, 0
                 "></feColorMatrix>
             </filter>
-            <!-- Filtro para Deuteranopia (deficiência em verde) -->
             <filter id="deuteranopia" color-interpolation-filters="sRGB">
                 <feColorMatrix type="matrix" values="
                     0.625, 0.375, 0, 0, 0,
@@ -216,7 +242,6 @@
                     0, 0, 0, 1, 0
                 "></feColorMatrix>
             </filter>
-            <!-- Filtro para Tritanopia (deficiência em azul) -->
             <filter id="tritanopia" color-interpolation-filters="sRGB">
                 <feColorMatrix type="matrix" values="
                     0.95, 0.05, 0, 0, 0,
@@ -228,11 +253,13 @@
         </defs>
     </svg>
 
-    <!-- Barra fixa unificada: botão de acessibilidade + VLibras -->
+    <!-- Barra fixa unificada: botões PERFEITAMENTE ALINHADOS -->
     <div class="fixed-accessibility-bar">
+        <!-- Botão de Acessibilidade -->
         <button class="acessibilidade-btn" onclick="togglePainelAcessibilidade()" aria-label="Opções de Acessibilidade">
             ♿
         </button>
+
         <!-- VLibras -->
         <div id="vlibras">
             <div vw class="enabled">
@@ -244,7 +271,7 @@
         </div>
     </div>
 
-    <!-- Painel de acessibilidade -->
+    <!-- Painel de acessibilidade (flutuante) -->
     <div id="painelAcessibilidade" class="acessibilidade-painel">
         <h4>♿ Opções de Acessibilidade</h4>
         <button onclick="toggleAltoContraste()" id="btnContraste">Alto Contraste</button>
@@ -272,6 +299,16 @@
                 try {
                     new window.VLibras.Widget('https://vlibras.gov.br/app');
                     console.log('VLibras inicializado');
+
+                    // Força o alinhamento após o carregamento
+                    setTimeout(function() {
+                        const vwButton = document.querySelector('[vw] [vw-access-button]');
+                        if (vwButton) {
+                            vwButton.style.position = 'relative';
+                            vwButton.style.top = '0';
+                            vwButton.style.left = '0';
+                        }
+                    }, 100);
                 } catch(e) {
                     console.error('Erro VLibras:', e);
                 }
@@ -291,7 +328,6 @@
 
         // Alto Contraste (desativa daltonismo se ativado)
         function toggleAltoContraste() {
-            // Se algum filtro de daltonismo estiver ativo, remove
             removerDaltonismo();
             document.body.classList.toggle('alto-contraste');
             const btn = document.getElementById('btnContraste');
@@ -307,13 +343,11 @@
 
         // Daltonismo
         function aplicarDaltonismo(tipo) {
-            // Remove alto contraste se ativo
             if (document.body.classList.contains('alto-contraste')) {
                 document.body.classList.remove('alto-contraste');
                 document.getElementById('btnContraste').textContent = 'Alto Contraste';
                 localStorage.setItem('altoContraste', 'false');
             }
-            // Remove classes anteriores
             document.body.classList.remove('protanopia', 'deuteranopia', 'tritanopia');
             document.body.classList.add(tipo);
             localStorage.setItem('daltonismo', tipo);

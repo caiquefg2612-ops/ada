@@ -167,10 +167,11 @@
 </style>
 
 <div class="header">
-    <h2>ADA Admin <span>| {{ nome }}</span></h2>
+    <h2>ADA <span>| {{ nome }}</span></h2>
     <div>
+        <a href="{{ url_for('admin_usuarios') }}">Usuários</a>
         <a href="{{ url_for('relatorios') }}">Relatórios</a>
-        <a href="{{ url_for('logout') }}" style="background:#666;">Sair</a>
+        <a href="{{ url_for('logout') }}" style="background:#666;">🚪 Sair</a>
     </div>
 </div>
 
@@ -207,17 +208,17 @@
             <tbody>
                 {% for d in demandas %}
                 <tr>
-                    <td>{{ d[0] }}</td>
-                    <td>{{ d[1] }}</td>
-                    <td>{{ d[2] }}</td>
-                    <td><strong>{{ d[3] }}</strong></td>
-                    <td><span class="status status-{{ d[4] }}">{{ d[4] }}</span></td>
-                    <td>{{ d[5].strftime('%d/%m/%Y') if d[5] else '' }}</td>
+                    <td>{{ d[0] }}</div>
+                    <td>{{ d[1] }}</div>
+                    <td>{{ d[2] }}</div>
+                    <td><strong>{{ d[3] }}</strong></div>
+                    <td><span class="status status-{{ d[4] }}">{{ d[4] }}</span></div>
+                    <td>{{ d[5].strftime('%d/%m/%Y') if d[5] else '' }}</div>
                     <td>
                         <a href="{{ url_for('ver_demanda', demanda_id=d[0]) }}" class="btn-sm">
                             Ver Detalhes
                         </a>
-                    </td>
+                    </div>
                 </tr>
                 {% endfor %}
             </tbody>

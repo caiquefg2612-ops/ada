@@ -7,7 +7,6 @@ import fdb
 app = Flask(__name__)
 app.secret_key = "chave_secreta_ada_2025"
 
-
 ADMIN_FIXO = {
     "id": 999,
     "nome": "Administrador ADA",
@@ -15,7 +14,6 @@ ADMIN_FIXO = {
     "senha_hash": hashlib.sha256("admin123".encode()).hexdigest(),
     "tipo": "admin"
 }
-
 
 
 def get_db_connection():
@@ -51,8 +49,7 @@ def get_db_connection():
                 raise e
 
 
-
-CHAVE_API = "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"
+CHAVE_API = "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"
 URL_IA = "https://openrouter.ai/api/v1/chat/completions"
 
 HEADERS = {
@@ -125,16 +122,17 @@ def criar_tabelas():
         cursor.execute("SELECT 1 FROM USUARIOS")
     except:
         cursor.execute("""
-            CREATE TABLE USUARIOS (
-                ID INTEGER NOT NULL PRIMARY KEY,
-                NOME VARCHAR(100) NOT NULL,
-                EMAIL VARCHAR(100) NOT NULL UNIQUE,
-                SENHA VARCHAR(64) NOT NULL,
-                TIPO VARCHAR(20),
-                DEFICIENCIA VARCHAR(100),
-                DATA_CADASTRO TIMESTAMP
-            )
-        """)
+                       CREATE TABLE USUARIOS
+                       (
+                           ID            INTEGER      NOT NULL PRIMARY KEY,
+                           NOME          VARCHAR(100) NOT NULL,
+                           EMAIL         VARCHAR(100) NOT NULL UNIQUE,
+                           SENHA         VARCHAR(64)  NOT NULL,
+                           TIPO          VARCHAR(20),
+                           DEFICIENCIA   VARCHAR(100),
+                           DATA_CADASTRO TIMESTAMP
+                       )
+                       """)
         conn.commit()
         print("Tabela USUARIOS criada")
 
@@ -143,21 +141,22 @@ def criar_tabelas():
         cursor.execute("SELECT 1 FROM DEMANDAS")
     except:
         cursor.execute("""
-            CREATE TABLE DEMANDAS (
-                ID INTEGER NOT NULL PRIMARY KEY,
-                USUARIO_ID INTEGER NOT NULL,
-                TITULO VARCHAR(200) NOT NULL,
-                DESCRICAO VARCHAR(2000) NOT NULL,
-                LOCALIZACAO VARCHAR(200),
-                CATEGORIA VARCHAR(50),
-                STATUS VARCHAR(20),
-                SOLUCAO_SUGERIDA VARCHAR(2000),
-                AREA_RESPONSAVEL VARCHAR(100),
-                PRAZO_ESTIMADO VARCHAR(100),
-                DATA_CRIACAO TIMESTAMP,
-                SOLUCAO_EDITADA VARCHAR(2000)
-            )
-        """)
+                       CREATE TABLE DEMANDAS
+                       (
+                           ID               INTEGER       NOT NULL PRIMARY KEY,
+                           USUARIO_ID       INTEGER       NOT NULL,
+                           TITULO           VARCHAR(200)  NOT NULL,
+                           DESCRICAO        VARCHAR(2000) NOT NULL,
+                           LOCALIZACAO      VARCHAR(200),
+                           CATEGORIA        VARCHAR(50),
+                           STATUS           VARCHAR(20),
+                           SOLUCAO_SUGERIDA VARCHAR(2000),
+                           AREA_RESPONSAVEL VARCHAR(100),
+                           PRAZO_ESTIMADO   VARCHAR(100),
+                           DATA_CRIACAO     TIMESTAMP,
+                           SOLUCAO_EDITADA  VARCHAR(2000)
+                       )
+                       """)
         conn.commit()
         print("Tabela DEMANDAS criada")
     else:
@@ -182,9 +181,9 @@ def criar_usuario(nome, email, senha, deficiencia=""):
     senha_hash = hashlib.sha256(senha.encode()).hexdigest()
 
     cursor.execute("""
-        INSERT INTO USUARIOS (ID, NOME, EMAIL, SENHA, TIPO, DEFICIENCIA, DATA_CADASTRO)
-        VALUES (?, ?, ?, ?, 'user', ?, ?)
-    """, (novo_id, nome, email, senha_hash, deficiencia, datetime.now()))
+                   INSERT INTO USUARIOS (ID, NOME, EMAIL, SENHA, TIPO, DEFICIENCIA, DATA_CADASTRO)
+                   VALUES (?, ?, ?, ?, 'user', ?, ?)
+                   """, (novo_id, nome, email, senha_hash, deficiencia, datetime.now()))
 
     conn.commit()
     conn.close()
@@ -248,9 +247,15 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/criar_usuario', methods=['GET', 'POST'])
-def criar_usuario_view():
+# ==================== ROTAS ADMIN (CRIAR USUÁRIOS) ====================
+@app.route('/admin/criar_usuario', methods=['GET', 'POST'])
+def admin_criar_usuario():
+    if 'usuario_id' not in session or session['tipo'] != 'admin':
+        return redirect(url_for('login'))
+
     erro = None
+    sucesso = None
+
     if request.method == 'POST':
         nome = request.form['nome']
         email = request.form['email']
@@ -258,12 +263,67 @@ def criar_usuario_view():
         deficiencia = request.form.get('deficiencia', '')
 
         try:
-            criar_usuario(nome, email, senha, deficiencia)
-            return redirect(url_for('login'))
+            # Verificar se email já existe
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM USUARIOS WHERE EMAIL = ?", (email,))
+            if cursor.fetchone()[0] > 0:
+                erro = "E-mail já cadastrado"
+            else:
+                criar_usuario(nome, email, senha, deficiencia)
+                sucesso = f"Usuário {nome} criado com sucesso!"
+            conn.close()
         except Exception as e:
             erro = f"Erro ao criar usuário: {e}"
 
-    return render_template('criar_usuario.html', erro=erro)
+    return render_template('admin_criar_usuario.html', erro=erro, sucesso=sucesso)
+
+
+@app.route('/admin/usuarios')
+def admin_usuarios():
+    if 'usuario_id' not in session or session['tipo'] != 'admin':
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+                       SELECT ID, NOME, EMAIL, TIPO, DEFICIENCIA, DATA_CADASTRO
+                       FROM USUARIOS
+                       WHERE TIPO = 'user'
+                       ORDER BY DATA_CADASTRO DESC
+                       """)
+        usuarios = cursor.fetchall()
+        conn.close()
+    except Exception as e:
+        usuarios = []
+        print(f"Erro: {e}")
+
+    return render_template('admin_usuarios.html', usuarios=usuarios)
+
+
+@app.route('/admin/deletar_usuario/<int:usuario_id>', methods=['POST'])
+def admin_deletar_usuario(usuario_id):
+    if 'usuario_id' not in session or session['tipo'] != 'admin':
+        return jsonify({"erro": "Não autorizado"}), 401
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Verificar se o usuário tem demandas
+        cursor.execute("SELECT COUNT(*) FROM DEMANDAS WHERE USUARIO_ID = ?", (usuario_id,))
+        tem_demandas = cursor.fetchone()[0] > 0
+
+        if tem_demandas:
+            return jsonify({"erro": "Usuário possui demandas. Exclua as demandas primeiro ou altere o status."}), 400
+
+        cursor.execute("DELETE FROM USUARIOS WHERE ID = ? AND TIPO = 'user'", (usuario_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"sucesso": True})
+    except Exception as e:
+        return jsonify({"erro": str(e)}), 500
 
 
 @app.route('/dashboard/user')
@@ -275,11 +335,18 @@ def dashboard_user():
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT ID, TITULO, CATEGORIA, STATUS, DATA_CRIACAO, SOLUCAO_SUGERIDA, SOLUCAO_EDITADA, AREA_RESPONSAVEL
-            FROM DEMANDAS 
-            WHERE USUARIO_ID = ? 
-            ORDER BY DATA_CRIACAO DESC
-        """, (session['usuario_id'],))
+                       SELECT ID,
+                              TITULO,
+                              CATEGORIA,
+                              STATUS,
+                              DATA_CRIACAO,
+                              SOLUCAO_SUGERIDA,
+                              SOLUCAO_EDITADA,
+                              AREA_RESPONSAVEL
+                       FROM DEMANDAS
+                       WHERE USUARIO_ID = ?
+                       ORDER BY DATA_CRIACAO DESC
+                       """, (session['usuario_id'],))
         demandas = cursor.fetchall()
         conn.close()
     except Exception as e:
@@ -309,11 +376,11 @@ def nova_demanda():
         novo_id = cursor.fetchone()[0]
 
         cursor.execute("""
-            INSERT INTO DEMANDAS (ID, USUARIO_ID, TITULO, DESCRICAO, LOCALIZACAO, CATEGORIA, 
-                                  STATUS, SOLUCAO_SUGERIDA, AREA_RESPONSAVEL, PRAZO_ESTIMADO, DATA_CRIACAO)
-            VALUES (?, ?, ?, ?, ?, ?, 'PENDENTE', ?, ?, ?, ?)
-        """, (novo_id, session['usuario_id'], titulo, descricao, localizacao, categoria,
-              solucao_ia['solucao'], solucao_ia['area'], solucao_ia['prazo'], datetime.now()))
+                       INSERT INTO DEMANDAS (ID, USUARIO_ID, TITULO, DESCRICAO, LOCALIZACAO, CATEGORIA,
+                                             STATUS, SOLUCAO_SUGERIDA, AREA_RESPONSAVEL, PRAZO_ESTIMADO, DATA_CRIACAO)
+                       VALUES (?, ?, ?, ?, ?, ?, 'PENDENTE', ?, ?, ?, ?)
+                       """, (novo_id, session['usuario_id'], titulo, descricao, localizacao, categoria,
+                             solucao_ia['solucao'], solucao_ia['area'], solucao_ia['prazo'], datetime.now()))
 
         conn.commit()
         conn.close()
@@ -333,11 +400,11 @@ def dashboard_admin():
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT d.ID, u.NOME, d.TITULO, d.CATEGORIA, d.STATUS, d.DATA_CRIACAO
-            FROM DEMANDAS d
-            JOIN USUARIOS u ON d.USUARIO_ID = u.ID
-            ORDER BY d.DATA_CRIACAO DESC
-        """)
+                       SELECT d.ID, u.NOME, d.TITULO, d.CATEGORIA, d.STATUS, d.DATA_CRIACAO
+                       FROM DEMANDAS d
+                                JOIN USUARIOS u ON d.USUARIO_ID = u.ID
+                       ORDER BY d.DATA_CRIACAO DESC
+                       """)
         demandas = cursor.fetchall()
 
         cursor.execute("SELECT COUNT(*) FROM DEMANDAS")
@@ -373,11 +440,11 @@ def ver_demanda(demanda_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT d.*, u.NOME, u.EMAIL, u.DEFICIENCIA
-        FROM DEMANDAS d
-        JOIN USUARIOS u ON d.USUARIO_ID = u.ID
-        WHERE d.ID = ?
-    """, (demanda_id,))
+                   SELECT d.*, u.NOME, u.EMAIL, u.DEFICIENCIA
+                   FROM DEMANDAS d
+                            JOIN USUARIOS u ON d.USUARIO_ID = u.ID
+                   WHERE d.ID = ?
+                   """, (demanda_id,))
     demanda = cursor.fetchone()
     conn.close()
 
@@ -459,17 +526,17 @@ def relatorios():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT CATEGORIA, COUNT(*) as TOTAL
-        FROM DEMANDAS
-        GROUP BY CATEGORIA
-    """)
+                   SELECT CATEGORIA, COUNT(*) as TOTAL
+                   FROM DEMANDAS
+                   GROUP BY CATEGORIA
+                   """)
     stats_categoria = cursor.fetchall()
 
     cursor.execute("""
-        SELECT STATUS, COUNT(*) as TOTAL
-        FROM DEMANDAS
-        GROUP BY STATUS
-    """)
+                   SELECT STATUS, COUNT(*) as TOTAL
+                   FROM DEMANDAS
+                   GROUP BY STATUS
+                   """)
     stats_status = cursor.fetchall()
 
     conn.close()
@@ -477,6 +544,7 @@ def relatorios():
     return render_template('relatorios.html',
                            stats_categoria=stats_categoria,
                            stats_status=stats_status)
+
 
 @app.route('/api/libras')
 def api_libras():
