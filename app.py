@@ -74,7 +74,7 @@ def get_db_connection():
                 raise e
 
 
-CHAVE_API = "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"
+CHAVE_API = ""
 URL_IA = "https://openrouter.ai/api/v1/chat/completions"
 
 HEADERS = {
