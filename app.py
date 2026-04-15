@@ -3,10 +3,12 @@ import hashlib
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import fdb
+import json
 
 app = Flask(__name__)
 app.secret_key = "chave_secreta_ada_2025"
 
+# ==================== CONTAS FIXAS ====================
 ADMIN_FIXO = {
     "id": 999,
     "nome": "Administrador ADA",
@@ -15,12 +17,20 @@ ADMIN_FIXO = {
     "tipo": "admin"
 }
 
+SEDE_FIXA = {
+    "id": 998,
+    "nome": "Sede ADA",
+    "email": "sede@ada.com",
+    "senha_hash": hashlib.sha256("sede123".encode()).hexdigest(),
+    "tipo": "sede"
+}
+
 
 def get_db_connection():
     try:
         conn = fdb.connect(
             host='localhost',
-            database=r'C:\Users\Usuario\PycharmProjects\ADAAA\BANCO.FDB',
+            database=r'C:\Users\Aluno\Downloads\ada-main\ada-main\BANCO (1).FDB',
             user='SYSDBA',
             password='sysdba',
             charset='NONE'
@@ -49,7 +59,7 @@ def get_db_connection():
                 raise e
 
 
-CHAVE_API = ""
+CHAVE_API = "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"
 URL_IA = "https://openrouter.ai/api/v1/chat/completions"
 
 HEADERS = {
@@ -65,7 +75,7 @@ def chamar_ia(prompt):
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.3
         }
-        resposta = requests.post(URL_IA, headers=HEADERS, json=data)
+        resposta = requests.post(URL_IA, headers=HEADERS, json=data, timeout=60)
         resposta.raise_for_status()
         return resposta.json()['choices'][0]['message']['content']
     except Exception as e:
@@ -84,7 +94,8 @@ def classificar_demanda(texto):
     return chamar_ia(prompt).strip()
 
 
-def sugerir_solucao(demanda, categoria):
+def sugerir_solucao_simples(demanda, categoria):
+    """Solução simples para o admin poder editar"""
     prompt = f"""
     Você é o assistente ADA da Petrobras. Para a seguinte demanda de acessibilidade:
 
@@ -92,7 +103,7 @@ def sugerir_solucao(demanda, categoria):
     Categoria: {categoria}
 
     Responda no seguinte formato EXATO:
-    Solução: [solução prática]
+    Solução: [solução prática e objetiva]
     Área: [TI, RH, Engenharia, etc]
     Prazo: [dias]
     """
@@ -110,6 +121,90 @@ def sugerir_solucao(demanda, categoria):
             resultado["prazo"] = linha.replace("Prazo:", "").strip()
 
     return resultado
+
+
+def sugerir_solucao_complexa(demanda, categoria):
+    """Solução complexa e detalhada - apenas para a sede"""
+    prompt = f"""
+    Você é um especialista em acessibilidade corporativa da Petrobras. 
+    Forneça uma SOLUÇÃO COMPLEXA E DETALHADA para a seguinte demanda:
+
+    DEMANDA: "{demanda}"
+    CATEGORIA: {categoria}
+
+    Sua resposta deve ser bem estruturada e incluir:
+
+    1. ANÁLISE DO PROBLEMA: (análise detalhada das causas raiz)
+    2. SOLUÇÃO PROPOSTA: (solução completa, com etapas e justificativas)
+    3. RECURSOS NECESSÁRIOS: (orçamento aproximado, materiais, pessoal)
+    4. CRONOGRAMA SUGERIDO: (em semanas/meses)
+    5. MÉTRICAS DE SUCESSO: (como medir se a solução funcionou)
+    6. PARCEIROS ENVOLVIDOS: (quem precisa ser consultado)
+
+    Seja específico, técnico e realista.
+    """
+    return chamar_ia(prompt)
+
+
+def comparar_solucoes(demanda, categoria, solucao_admin, solucao_ia_complexa):
+    """IA compara as duas soluções e gera uma solução final"""
+    prompt = f"""
+    Você é um especialista em acessibilidade corporativa. Compare as duas soluções abaixo 
+    para a seguinte demanda e crie uma SOLUÇÃO FINAL OTIMIZADA.
+
+    DEMANDA: "{demanda}"
+    CATEGORIA: {categoria}
+
+    --- SOLUÇÃO DO ADMIN (simples e prática) ---
+    {solucao_admin}
+
+    --- SOLUÇÃO IA COMPLEXA (detalhada e técnica) ---
+    {solucao_ia_complexa}
+
+    Agora, faça o seguinte:
+    1. Liste os PRÓS e CONTRAS de cada solução
+    2. Identifique RISCOS e PROBLEMAS POTENCIAIS de cada abordagem
+    3. Crie uma SOLUÇÃO FINAL que combine o melhor de ambas
+    4. Defina um status sugerido (PENDENTE, EM_ANDAMENTO ou RESOLVIDO)
+    5. Dê uma mensagem que será mostrada ao usuário (linguagem simples e acolhedora)
+
+    Responda no seguinte formato JSON:
+    {{
+        "pros_admin": ["vantagem1", "vantagem2"],
+        "contras_admin": ["desvantagem1", "desvantagem2"],
+        "pros_ia": ["vantagem1", "vantagem2"],
+        "contras_ia": ["desvantagem1", "desvantagem2"],
+        "riscos": ["risco1", "risco2"],
+        "solucao_final": "texto da solução final combinada",
+        "status_sugerido": "EM_ANDAMENTO",
+        "mensagem_usuario": "Com base nessa demanda, vamos fazer isso, isso e isso..."
+    }}
+    """
+
+    resposta = chamar_ia(prompt)
+
+    # Tentar extrair JSON
+    try:
+        # Encontrar o JSON na resposta
+        inicio = resposta.find('{')
+        fim = resposta.rfind('}') + 1
+        if inicio != -1 and fim != -1:
+            json_str = resposta[inicio:fim]
+            return json.loads(json_str)
+    except:
+        pass
+
+    # Fallback
+    return {
+        "pros_admin": ["Solução prática e de rápida implementação"],
+        "contras_admin": ["Pode não abordar causas profundas"],
+        "pros_ia": ["Solução completa e bem estruturada"],
+        "contras_ia": ["Pode ser demorada ou cara"],
+        "riscos": ["Necessário alinhamento entre equipes"],
+        "solucao_final": f"Combinar abordagem prática do admin com visão técnica da IA.\n\nAdmin sugeriu: {solucao_admin[:200]}...\n\nIA sugeriu: {solucao_ia_complexa[:200]}...",
+        "status_sugerido": "EM_ANDAMENTO",
+        "mensagem_usuario": f"Recebemos sua demanda sobre {demanda[:100]}... Estamos analisando a melhor forma de atendê-lo."
+    }
 
 
 # ==================== FUNÇÕES DO BANCO ====================
@@ -136,37 +231,57 @@ def criar_tabelas():
         conn.commit()
         print("Tabela USUARIOS criada")
 
-    # Criar tabela DEMANDAS
+    # Criar tabela DEMANDAS com novas colunas
     try:
         cursor.execute("SELECT 1 FROM DEMANDAS")
     except:
         cursor.execute("""
                        CREATE TABLE DEMANDAS
                        (
-                           ID               INTEGER       NOT NULL PRIMARY KEY,
-                           USUARIO_ID       INTEGER       NOT NULL,
-                           TITULO           VARCHAR(200)  NOT NULL,
-                           DESCRICAO        VARCHAR(2000) NOT NULL,
-                           LOCALIZACAO      VARCHAR(200),
-                           CATEGORIA        VARCHAR(50),
-                           STATUS           VARCHAR(20),
-                           SOLUCAO_SUGERIDA VARCHAR(2000),
-                           AREA_RESPONSAVEL VARCHAR(100),
-                           PRAZO_ESTIMADO   VARCHAR(100),
-                           DATA_CRIACAO     TIMESTAMP,
-                           SOLUCAO_EDITADA  VARCHAR(2000)
+                           ID                  INTEGER       NOT NULL PRIMARY KEY,
+                           USUARIO_ID          INTEGER       NOT NULL,
+                           TITULO              VARCHAR(200)  NOT NULL,
+                           DESCRICAO           VARCHAR(2000) NOT NULL,
+                           LOCALIZACAO         VARCHAR(200),
+                           CATEGORIA           VARCHAR(50),
+                           STATUS              VARCHAR(20),
+                           SOLUCAO_ADMIN       VARCHAR(2000),
+                           AREA_RESPONSAVEL    VARCHAR(100),
+                           PRAZO_ESTIMADO      VARCHAR(100),
+                           DATA_CRIACAO        TIMESTAMP,
+                           SOLUCAO_IA_COMPLEXA BLOB SUB_TYPE TEXT,
+                           SOLUCAO_COMPARADA   BLOB SUB_TYPE TEXT,
+                           MENSAGEM_USUARIO    VARCHAR(2000),
+                           COMPARACAO_JSON     BLOB SUB_TYPE TEXT
                        )
                        """)
         conn.commit()
-        print("Tabela DEMANDAS criada")
+        print("Tabela DEMANDAS criada com novas colunas")
     else:
-        # Verificar se a coluna SOLUCAO_EDITADA existe
+        # Verificar e adicionar colunas faltantes
+        colunas_existentes = []
         try:
-            cursor.execute("SELECT SOLUCAO_EDITADA FROM DEMANDAS WHERE 1=0")
+            cursor.execute("SELECT * FROM DEMANDAS WHERE 1=0")
+            for col in cursor.description:
+                colunas_existentes.append(col[0])
         except:
-            cursor.execute("ALTER TABLE DEMANDAS ADD SOLUCAO_EDITADA VARCHAR(2000)")
-            conn.commit()
-            print("Coluna SOLUCAO_EDITADA adicionada")
+            pass
+
+        novas_colunas = {
+            "SOLUCAO_IA_COMPLEXA": "ALTER TABLE DEMANDAS ADD SOLUCAO_IA_COMPLEXA BLOB SUB_TYPE TEXT",
+            "SOLUCAO_COMPARADA": "ALTER TABLE DEMANDAS ADD SOLUCAO_COMPARADA BLOB SUB_TYPE TEXT",
+            "MENSAGEM_USUARIO": "ALTER TABLE DEMANDAS ADD MENSAGEM_USUARIO VARCHAR(2000)",
+            "COMPARACAO_JSON": "ALTER TABLE DEMANDAS ADD COMPARACAO_JSON BLOB SUB_TYPE TEXT"
+        }
+
+        for col, sql in novas_colunas.items():
+            if col not in colunas_existentes:
+                try:
+                    cursor.execute(sql)
+                    conn.commit()
+                    print(f"Coluna {col} adicionada")
+                except Exception as e:
+                    print(f"Erro ao adicionar {col}: {e}")
 
     conn.close()
 
@@ -190,9 +305,39 @@ def criar_usuario(nome, email, senha, deficiencia=""):
     return novo_id
 
 
-# Criar tabelas ao iniciar
+# Inserir contas fixas se não existirem
+def inserir_contas_fixas():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Admin
+    cursor.execute("SELECT COUNT(*) FROM USUARIOS WHERE ID = ?", (ADMIN_FIXO['id'],))
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("""
+                       INSERT INTO USUARIOS (ID, NOME, EMAIL, SENHA, TIPO, DATA_CADASTRO)
+                       VALUES (?, ?, ?, ?, ?, ?)
+                       """, (ADMIN_FIXO['id'], ADMIN_FIXO['nome'], ADMIN_FIXO['email'],
+                             ADMIN_FIXO['senha_hash'], ADMIN_FIXO['tipo'], datetime.now()))
+        print("Admin inserido")
+
+    # Sede
+    cursor.execute("SELECT COUNT(*) FROM USUARIOS WHERE ID = ?", (SEDE_FIXA['id'],))
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("""
+                       INSERT INTO USUARIOS (ID, NOME, EMAIL, SENHA, TIPO, DATA_CADASTRO)
+                       VALUES (?, ?, ?, ?, ?, ?)
+                       """, (SEDE_FIXA['id'], SEDE_FIXA['nome'], SEDE_FIXA['email'],
+                             SEDE_FIXA['senha_hash'], SEDE_FIXA['tipo'], datetime.now()))
+        print("Sede inserida")
+
+    conn.commit()
+    conn.close()
+
+
+# Criar tabelas e inserir contas fixas ao iniciar
 try:
     criar_tabelas()
+    inserir_contas_fixas()
     print("Banco de dados verificado")
 except Exception as e:
     print(f"Atenção ao verificar banco: {e}")
@@ -204,6 +349,8 @@ def index():
     if 'usuario_id' in session:
         if session['tipo'] == 'admin':
             return redirect(url_for('dashboard_admin'))
+        elif session['tipo'] == 'sede':
+            return redirect(url_for('dashboard_sede'))
         return redirect(url_for('dashboard_user'))
     return redirect(url_for('login'))
 
@@ -215,11 +362,18 @@ def login():
         senha = request.form['senha']
         senha_hash = hashlib.sha256(senha.encode()).hexdigest()
 
+        # Verificar contas fixas
         if email == ADMIN_FIXO['email'] and senha_hash == ADMIN_FIXO['senha_hash']:
             session['usuario_id'] = ADMIN_FIXO['id']
             session['usuario_nome'] = ADMIN_FIXO['nome']
             session['tipo'] = 'admin'
             return redirect(url_for('dashboard_admin'))
+
+        if email == SEDE_FIXA['email'] and senha_hash == SEDE_FIXA['senha_hash']:
+            session['usuario_id'] = SEDE_FIXA['id']
+            session['usuario_nome'] = SEDE_FIXA['nome']
+            session['tipo'] = 'sede'
+            return redirect(url_for('dashboard_sede'))
 
         try:
             conn = get_db_connection()
@@ -247,42 +401,39 @@ def logout():
     return redirect(url_for('login'))
 
 
-# ==================== ROTAS ADMIN (CRIAR USUÁRIOS) ====================
-@app.route('/admin/criar_usuario', methods=['GET', 'POST'])
+# ==================== ROTAS ADMIN ====================
+@app.route('/admin/criar_usuario', methods=['POST'])
 def admin_criar_usuario():
     if 'usuario_id' not in session or session['tipo'] != 'admin':
         return redirect(url_for('login'))
 
-    erro = None
-    sucesso = None
+    nome = request.form['nome']
+    email = request.form['email']
+    senha = request.form['senha']
+    deficiencia = request.form.get('deficiencia', '')
 
-    if request.method == 'POST':
-        nome = request.form['nome']
-        email = request.form['email']
-        senha = request.form['senha']
-        deficiencia = request.form.get('deficiencia', '')
-
-        try:
-            # Verificar se email já existe
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT COUNT(*) FROM USUARIOS WHERE EMAIL = ?", (email,))
-            if cursor.fetchone()[0] > 0:
-                erro = "E-mail já cadastrado"
-            else:
-                criar_usuario(nome, email, senha, deficiencia)
-                sucesso = f"Usuário {nome} criado com sucesso!"
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM USUARIOS WHERE EMAIL = ?", (email,))
+        if cursor.fetchone()[0] > 0:
             conn.close()
-        except Exception as e:
-            erro = f"Erro ao criar usuário: {e}"
+            return redirect(url_for('admin_usuarios', erro="E-mail já cadastrado"))
 
-    return render_template('admin_criar_usuario.html', erro=erro, sucesso=sucesso)
+        criar_usuario(nome, email, senha, deficiencia)
+        conn.close()
+        return redirect(url_for('admin_usuarios', sucesso=f"Usuário {nome} criado com sucesso!"))
+    except Exception as e:
+        return redirect(url_for('admin_usuarios', erro=f"Erro ao criar usuário: {e}"))
 
 
 @app.route('/admin/usuarios')
 def admin_usuarios():
     if 'usuario_id' not in session or session['tipo'] != 'admin':
         return redirect(url_for('login'))
+
+    erro = request.args.get('erro')
+    sucesso = request.args.get('sucesso')
 
     try:
         conn = get_db_connection()
@@ -299,7 +450,7 @@ def admin_usuarios():
         usuarios = []
         print(f"Erro: {e}")
 
-    return render_template('admin_usuarios.html', usuarios=usuarios)
+    return render_template('admin_usuarios.html', usuarios=usuarios, erro=erro, sucesso=sucesso)
 
 
 @app.route('/admin/deletar_usuario/<int:usuario_id>', methods=['POST'])
@@ -310,8 +461,6 @@ def admin_deletar_usuario(usuario_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
-        # Verificar se o usuário tem demandas
         cursor.execute("SELECT COUNT(*) FROM DEMANDAS WHERE USUARIO_ID = ?", (usuario_id,))
         tem_demandas = cursor.fetchone()[0] > 0
 
@@ -326,6 +475,140 @@ def admin_deletar_usuario(usuario_id):
         return jsonify({"erro": str(e)}), 500
 
 
+# ==================== ROTAS SEDE ====================
+@app.route('/dashboard/sede')
+def dashboard_sede():
+    if 'usuario_id' not in session or session['tipo'] != 'sede':
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+                       SELECT d.ID,
+                              u.NOME,
+                              d.TITULO,
+                              d.CATEGORIA,
+                              d.STATUS,
+                              d.DATA_CRIACAO,
+                              d.SOLUCAO_ADMIN,
+                              d.SOLUCAO_IA_COMPLEXA,
+                              d.SOLUCAO_COMPARADA
+                       FROM DEMANDAS d
+                                JOIN USUARIOS u ON d.USUARIO_ID = u.ID
+                       ORDER BY d.DATA_CRIACAO DESC
+                       """)
+        demandas = cursor.fetchall()
+
+        cursor.execute("SELECT COUNT(*) FROM DEMANDAS")
+        total = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM DEMANDAS WHERE STATUS = 'PENDENTE'")
+        pendentes = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM DEMANDAS WHERE SOLUCAO_COMPARADA IS NOT NULL")
+        com_solucao_final = cursor.fetchone()[0]
+
+        conn.close()
+    except Exception as e:
+        demandas = []
+        total = pendentes = com_solucao_final = 0
+        print(f"Erro: {e}")
+
+    return render_template('dashboard_sede.html',
+                           demandas=demandas,
+                           total=total,
+                           pendentes=pendentes,
+                           com_solucao_final=com_solucao_final,
+                           nome=session['usuario_nome'])
+
+
+@app.route('/sede/demanda/<int:demanda_id>')
+def sede_ver_demanda(demanda_id):
+    if 'usuario_id' not in session or session['tipo'] != 'sede':
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+                   SELECT d.*, u.NOME, u.EMAIL, u.DEFICIENCIA
+                   FROM DEMANDAS d
+                            JOIN USUARIOS u ON d.USUARIO_ID = u.ID
+                   WHERE d.ID = ?
+                   """, (demanda_id,))
+    demanda = cursor.fetchone()
+    conn.close()
+
+    return render_template('sede_ver_demanda.html', demanda=demanda)
+
+
+@app.route('/sede/comparar_solucoes', methods=['POST'])
+def sede_comparar_solucoes():
+    if 'usuario_id' not in session or session['tipo'] != 'sede':
+        return jsonify({"erro": "Não autorizado"}), 401
+
+    data = request.get_json()
+    demanda_id = data.get('demanda_id')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT DESCRICAO, CATEGORIA, SOLUCAO_ADMIN, SOLUCAO_IA_COMPLEXA FROM DEMANDAS WHERE ID = ?",
+                   (demanda_id,))
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return jsonify({"erro": "Demanda não encontrada"}), 404
+
+    descricao, categoria, solucao_admin, solucao_ia_complexa = row
+
+    # Chamar IA para comparar
+    comparacao = comparar_solucoes(descricao, categoria, solucao_admin or "", solucao_ia_complexa or "")
+
+    # Salvar no banco
+    cursor.execute("""
+                   UPDATE DEMANDAS
+                   SET SOLUCAO_COMPARADA = ?,
+                       MENSAGEM_USUARIO  = ?,
+                       COMPARACAO_JSON   = ?,
+                       STATUS            = ?
+                   WHERE ID = ?
+                   """, (comparacao.get('solucao_final', ''),
+                         comparacao.get('mensagem_usuario', ''),
+                         json.dumps(comparacao),
+                         comparacao.get('status_sugerido', 'EM_ANDAMENTO'),
+                         demanda_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify(comparacao)
+
+
+@app.route('/sede/atualizar_status_final', methods=['POST'])
+def sede_atualizar_status_final():
+    if 'usuario_id' not in session or session['tipo'] != 'sede':
+        return jsonify({"erro": "Não autorizado"}), 401
+
+    data = request.get_json()
+    demanda_id = data.get('demanda_id')
+    novo_status = data.get('status')
+    mensagem_usuario = data.get('mensagem_usuario')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+                   UPDATE DEMANDAS
+                   SET STATUS           = ?,
+                       MENSAGEM_USUARIO = ?
+                   WHERE ID = ?
+                   """, (novo_status, mensagem_usuario, demanda_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"sucesso": True})
+
+
+# ==================== ROTAS ADMIN (Dashboard e Gestão) ====================
 @app.route('/dashboard/user')
 def dashboard_user():
     if 'usuario_id' not in session or session['tipo'] != 'user':
@@ -340,9 +623,7 @@ def dashboard_user():
                               CATEGORIA,
                               STATUS,
                               DATA_CRIACAO,
-                              SOLUCAO_SUGERIDA,
-                              SOLUCAO_EDITADA,
-                              AREA_RESPONSAVEL
+                              MENSAGEM_USUARIO
                        FROM DEMANDAS
                        WHERE USUARIO_ID = ?
                        ORDER BY DATA_CRIACAO DESC
@@ -367,7 +648,10 @@ def nova_demanda():
         localizacao = request.form.get('localizacao', '')
 
         categoria = classificar_demanda(descricao)
-        solucao_ia = sugerir_solucao(descricao, categoria)
+
+        # Gerar ambas as soluções
+        solucao_simples = sugerir_solucao_simples(descricao, categoria)
+        solucao_complexa = sugerir_solucao_complexa(descricao, categoria)
 
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -377,10 +661,13 @@ def nova_demanda():
 
         cursor.execute("""
                        INSERT INTO DEMANDAS (ID, USUARIO_ID, TITULO, DESCRICAO, LOCALIZACAO, CATEGORIA,
-                                             STATUS, SOLUCAO_SUGERIDA, AREA_RESPONSAVEL, PRAZO_ESTIMADO, DATA_CRIACAO)
-                       VALUES (?, ?, ?, ?, ?, ?, 'PENDENTE', ?, ?, ?, ?)
+                                             STATUS, SOLUCAO_ADMIN, AREA_RESPONSAVEL, PRAZO_ESTIMADO,
+                                             DATA_CRIACAO, SOLUCAO_IA_COMPLEXA, MENSAGEM_USUARIO)
+                       VALUES (?, ?, ?, ?, ?, ?, 'PENDENTE', ?, ?, ?, ?, ?, ?)
                        """, (novo_id, session['usuario_id'], titulo, descricao, localizacao, categoria,
-                             solucao_ia['solucao'], solucao_ia['area'], solucao_ia['prazo'], datetime.now()))
+                             solucao_simples['solucao'], solucao_simples['area'], solucao_simples['prazo'],
+                             datetime.now(), solucao_complexa,
+                             "Recebemos sua demanda. Em breve, a sede analisará e dará um retorno."))
 
         conn.commit()
         conn.close()
@@ -440,7 +727,19 @@ def ver_demanda(demanda_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-                   SELECT d.*, u.NOME, u.EMAIL, u.DEFICIENCIA
+                   SELECT d.ID,
+                          d.TITULO,
+                          d.DESCRICAO,
+                          d.LOCALIZACAO,
+                          d.CATEGORIA,
+                          d.STATUS,
+                          d.SOLUCAO_ADMIN,
+                          d.AREA_RESPONSAVEL,
+                          d.PRAZO_ESTIMADO,
+                          d.DATA_CRIACAO,
+                          u.NOME,
+                          u.EMAIL,
+                          u.DEFICIENCIA
                    FROM DEMANDAS d
                             JOIN USUARIOS u ON d.USUARIO_ID = u.ID
                    WHERE d.ID = ?
@@ -462,7 +761,7 @@ def salvar_solucao():
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE DEMANDAS SET SOLUCAO_EDITADA = ? WHERE ID = ?", (nova_solucao, demanda_id))
+    cursor.execute("UPDATE DEMANDAS SET SOLUCAO_ADMIN = ? WHERE ID = ?", (nova_solucao, demanda_id))
     conn.commit()
     conn.close()
 

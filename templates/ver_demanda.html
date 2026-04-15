@@ -203,12 +203,12 @@
 
         <div class="campo">
             <label>Usuário:</label>
-            {{ demanda[12] }} ({{ demanda[13] }})
+            {{ demanda[15] }} ({{ demanda[16] }})
         </div>
 
         <div class="campo">
             <label>Deficiência:</label>
-            {{ demanda[14] if demanda[14] else 'Não informada' }}
+            {{ demanda[17] if demanda[17] else 'Não informada' }}
         </div>
 
         <div class="campo">
@@ -250,7 +250,7 @@
 
         <div class="campo">
             <label>Solução Editada (o que o usuário vai ver):</label>
-            <textarea id="solucaoEditavel" class="solucao-editavel" rows="6" placeholder="Digite aqui a solução que o usuário vai visualizar...">{% if demanda[11] %}{{ demanda[11] }}{% elif demanda[7] %}{{ demanda[7] }}{% else %}{% endif %}</textarea>
+           <textarea id="solucaoEditavel" class="solucao-editavel" rows="6" placeholder="Digite aqui a solução que o usuário vai visualizar...">{% if demanda[7] %}{{ demanda[7] }}{% endif %}</textarea>
             <div class="btn-group">
                 <button onclick="salvarSolucao()">Salvar Solução</button>
                 <button onclick="copiarSolucaoIA()" class="btn-secundario">Copiar Solução da IA</button>
@@ -269,7 +269,7 @@
 
         <div class="campo">
             <label>Data de Criação:</label>
-            {{ demanda[10].strftime('%d/%m/%Y %H:%M') if demanda[10] else '' }}
+            {{ demanda[10] if demanda[10] else '' }}
         </div>
     </div>
 

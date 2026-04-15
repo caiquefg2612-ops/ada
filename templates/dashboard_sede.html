@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Admin - Demandas{% endblock %}
+{% block title %}Sede - Demandas{% endblock %}
 
 {% block content %}
 <style>
@@ -30,7 +30,7 @@
     }
 
     .header h2 span {
-        color: #00d4ff;
+        color: #ff6b35;
     }
 
     .header a {
@@ -71,7 +71,7 @@
     .stat-card .numero {
         font-size: 2.5rem;
         font-weight: bold;
-        color: #0066B3;
+        color: #ff6b35;
     }
 
     .stat-card .label {
@@ -91,7 +91,7 @@
         color: #0066B3;
         font-size: 1.5rem;
         margin-bottom: 20px;
-        border-left: 4px solid #009E2C;
+        border-left: 4px solid #ff6b35;
         padding-left: 15px;
     }
 
@@ -135,8 +135,26 @@
         color: white;
     }
 
+    .badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: bold;
+    }
+
+    .badge-finalizado {
+        background: #28a745;
+        color: white;
+    }
+
+    .badge-pendente {
+        background: #ffc107;
+        color: #333;
+    }
+
     .btn-sm {
-        background: #0066B3;
+        background: #ff6b35;
         color: white;
         border: none;
         padding: 6px 12px;
@@ -149,10 +167,9 @@
     }
 
     .btn-sm:hover {
-        background: #004d8c;
+        background: #e55a2b;
     }
 
-    /* Alto contraste */
     body.alto-contraste .card,
     body.alto-contraste .stat-card {
         background: black;
@@ -167,10 +184,8 @@
 </style>
 
 <div class="header">
-    <h2>ADA <span>| {{ nome }}</span></h2>
+    <h2>ADA Sede <span>| {{ nome }}</span></h2>
     <div>
-        <a href="{{ url_for('admin_usuarios') }}">Usuários</a>
-        <a href="{{ url_for('relatorios') }}">Relatórios</a>
         <a href="{{ url_for('logout') }}" style="background:#666;">🚪 Sair</a>
     </div>
 </div>
@@ -186,8 +201,8 @@
             <div class="label">Pendentes</div>
         </div>
         <div class="stat-card">
-            <div class="numero">{{ total_usuarios }}</div>
-            <div class="label">Usuários</div>
+            <div class="numero">{{ com_solucao_final }}</div>
+            <div class="label">Com Solução Final</div>
         </div>
     </div>
 
@@ -201,6 +216,7 @@
                     <th>Título</th>
                     <th>Categoria</th>
                     <th>Status</th>
+                    <th>Solução Final</th>
                     <th>Data</th>
                     <th></th>
                 </tr>
@@ -213,10 +229,17 @@
                     <td>{{ d[2] }}</div>
                     <td><strong>{{ d[3] }}</strong></div>
                     <td><span class="status status-{{ d[4] }}">{{ d[4] }}</span></div>
-                    <td>{% if d[5] %}{{ d[5] }}{% else %}{% endif %}</td>
                     <td>
-                        <a href="{{ url_for('ver_demanda', demanda_id=d[0]) }}" class="btn-sm">
-                            Ver Detalhes
+                        {% if d[8] %}
+                            <span class="badge badge-finalizado">✅ Finalizada</span>
+                        {% else %}
+                            <span class="badge badge-pendente">⏳ Aguardando</span>
+                        {% endif %}
+                    </div>
+                    <td>{{ d[5].strftime('%d/%m/%Y') if d[5] else '' }}</div>
+                    <td>
+                        <a href="{{ url_for('sede_ver_demanda', demanda_id=d[0]) }}" class="btn-sm">
+                            Analisar
                         </a>
                     </div>
                 </tr>
