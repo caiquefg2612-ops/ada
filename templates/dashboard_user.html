@@ -209,6 +209,44 @@
         color: yellow;
         border-left-color: yellow;
     }
+
+    /* --- ADICIONADO: ESTILOS DE LIKE E DISLIKE --- */
+    .feedback-container {
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px dashed #ccc;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .btn-feedback {
+        background: #fff;
+        border: 1px solid #ccc;
+        padding: 5px 10px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .btn-feedback:hover:not(:disabled) {
+        background: #f0f2f5;
+        transform: scale(1.05);
+    }
+    .btn-feedback:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .btn-like.ativo { background: #28a745; color: white; border-color: #28a745; }
+    .btn-dislike.ativo { background: #dc3545; color: white; border-color: #dc3545; }
+    body.alto-contraste .btn-feedback {
+        background: black; color: yellow; border-color: yellow;
+    }
+    body.alto-contraste .btn-like.ativo, body.alto-contraste .btn-dislike.ativo {
+        background: yellow; color: black;
+    }
 </style>
 
 <div class="header">
@@ -246,16 +284,16 @@
             <tbody>
                 {% for d in demandas %}
                 <tr>
-                    <td>{{ d[0] }}</div>
-                    <td>{{ d[1] }}</div>
-                    <td><strong>{{ d[2] }}</strong></div>
-                    <td><span class="status status-{{ d[3] }}">{{ d[3] }}</span></div>
-                    <td>{{ d[4].strftime('%d/%m/%Y') if d[4] else '' }}</div>
+                    <td>{{ d[0] }}</td>
+                    <td>{{ d[1] }}</td>
+                    <td><strong>{{ d[2] }}</strong></td>
+                    <td><span class="status status-{{ d[3] }}">{{ d[3] }}</span></td>
+                    <td>{{ d[4].strftime('%d/%m/%Y') if d[4] else '' }}</td>
                     <td>
                         <button class="btn-detalhes" onclick="toggleDetalhes({{ d[0] }})">
                             Ver Resposta
                         </button>
-                    </div>
+                    </td>
                 </tr>
                 <tr id="detalhes-{{ d[0] }}" style="display:none;">
                     <td colspan="6">
@@ -263,14 +301,31 @@
                             <strong>Resposta da Sede:</strong>
                             <br><br>
                             {% if d[5] %}
-                                {{ d[5] }}
-                            {% else %}
+                                <span id="texto-resposta-{{ d[0] }}">{{ d[5] }}</span>
+                                <br>
+                                <button class="btn-ouvir-mensagem" onclick="lerTexto(document.getElementById('texto-resposta-{{ d[0] }}').innerText)">
+                                    🔊 Ouvir Resposta
+                                </button>
+
+                                <div class="feedback-container" id="feedback-{{ d[0] }}">
+                                    <span style="font-size: 0.85rem; color: #555;">O que achou desta resposta?</span>
+                                    <button class="btn-feedback btn-like {% if d[6] == 'like' %}ativo{% endif %}"
+                                            onclick="enviarFeedback({{ d[0] }}, 'like', this)"
+                                            {% if d[6] %}disabled{% endif %}>
+                                        👍 Gostei
+                                    </button>
+                                    <button class="btn-feedback btn-dislike {% if d[6] == 'dislike' %}ativo{% endif %}"
+                                            onclick="enviarFeedback({{ d[0] }}, 'dislike', this)"
+                                            {% if d[6] %}disabled{% endif %}>
+                                        👎 Não gostei
+                                    </button>
+                                </div>
+                                <div id="msg-feedback-{{ d[0] }}" style="display: {% if d[6] %}block{% else %}none{% endif %}; color: #0066B3; font-size: 0.8rem; margin-top: 5px;">
+                                    {% if d[6] %}Você já avaliou esta resposta.{% endif %}
+                                </div>
+                                {% else %}
                                 <em>Sua demanda está em análise. Em breve a sede dará um retorno.</em>
                             {% endif %}
-                            <br>
-                            <button class="btn-ouvir-mensagem" onclick="lerTexto(this.previousElementSibling.innerText)">
-                                🔊 Ouvir Resposta
-                            </button>
                         </div>
 
                         {% if d[3] == 'RESOLVIDO' %}
@@ -286,8 +341,7 @@
                             Estamos trabalhando na solução. Em breve atualizaremos o status.
                         </div>
                         {% endif %}
-                    </div>
-                </tr>
+                    </td> </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -312,6 +366,44 @@
         } else {
             row.style.display = 'none';
         }
+    }
+
+    // --- ADICIONADO: FUNÇÃO PARA ENVIAR LIKE/DISLIKE ---
+    function enviarFeedback(idDemanda, avaliacao, btnClicado) {
+        fetch('/usuario/avaliar_solucao', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                demanda_id: idDemanda,
+                avaliacao: avaliacao
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.sucesso) {
+                const container = document.getElementById('feedback-' + idDemanda);
+                const botoes = container.querySelectorAll('.btn-feedback');
+
+                // Desativar botões
+                botoes.forEach(btn => btn.disabled = true);
+
+                // Marcar o que foi clicado como ativo
+                btnClicado.classList.add('ativo');
+
+                // Mostrar a mensagem de agradecimento
+                const msg = document.getElementById('msg-feedback-' + idDemanda);
+                msg.innerText = "Obrigado pelo seu feedback!";
+                msg.style.display = 'block';
+            } else {
+                alert("Erro ao enviar avaliação: " + data.erro);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert("Ocorreu um erro ao enviar sua avaliação.");
+        });
     }
 </script>
 {% endblock %}

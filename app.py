@@ -45,9 +45,9 @@ def get_db_connection():
     try:
         conn = fdb.connect(
             host='localhost',
-            database=r'C:\Users\Aluno\Downloads\ada-main\BANCO (1).FDB',
+            database=r'C:\Users\Usuario\PycharmProjects\ada-main\BANCO (1).FDB',
             user='SYSDBA',
-            password='sysdba',
+            password='SYSDBA',
             charset='NONE'
         )
         return conn
@@ -74,7 +74,7 @@ def get_db_connection():
                 raise e
 
 
-CHAVE_API = "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"
+CHAVE_API = "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"
 URL_IA = "https://openrouter.ai/api/v1/chat/completions"
 
 HEADERS = {
@@ -656,13 +656,15 @@ def dashboard_user():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        # ADICIONADO: AVALIACAO_USUARIO no SELECT
         cursor.execute("""
                        SELECT ID,
                               TITULO,
                               CATEGORIA,
                               STATUS,
                               DATA_CRIACAO,
-                              MENSAGEM_USUARIO
+                              MENSAGEM_USUARIO,
+                              AVALIACAO_USUARIO
                        FROM DEMANDAS
                        WHERE USUARIO_ID = ?
                        ORDER BY DATA_CRIACAO DESC
@@ -943,6 +945,30 @@ def sede_atualizar_solucao_admin():
 @app.route('/api/libras')
 def api_libras():
     return render_template('libras.html')
+
+@app.route('/usuario/avaliar_solucao', methods=['POST'])
+def avaliar_solucao():
+    if 'usuario_id' not in session or session['tipo'] != 'user':
+        return jsonify({"erro": "Não autorizado"}), 401
+
+    data = request.get_json()
+    demanda_id = data.get('demanda_id')
+    avaliacao = data.get('avaliacao')
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE DEMANDAS 
+            SET AVALIACAO_USUARIO = ? 
+            WHERE ID = ? AND USUARIO_ID = ?
+        """, (avaliacao, demanda_id, session['usuario_id']))
+        conn.commit()
+        conn.close()
+        return jsonify({"sucesso": True})
+    except Exception as e:
+        # Importante: Mesmo no erro, tem que devolver JSON
+        return jsonify({"erro": str(e)}), 500
 
 
 if __name__ == '__main__':
