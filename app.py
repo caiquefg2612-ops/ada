@@ -781,7 +781,9 @@ def ver_demanda(demanda_id):
                           u.NOME,                /* 10 */
                           u.EMAIL,               /* 11 */
                           u.DEFICIENCIA,         /* 12 */
-                          d.SOLUCAO_IA_COMPLEXA  /* 13 */
+                          d.SOLUCAO_IA_COMPLEXA, /* 13 */
+                          d.MENSAGEM_USUARIO,    /* 14 */
+                          d.AVALIACAO_USUARIO    /* 15 */
                    FROM DEMANDAS d
                             JOIN USUARIOS u ON d.USUARIO_ID = u.ID
                    WHERE d.ID = ?
@@ -790,7 +792,6 @@ def ver_demanda(demanda_id):
     conn.close()
 
     return render_template('ver_demanda.html', demanda=demanda)
-
 
 @app.route('/admin/salvar_solucao', methods=['POST'])
 def salvar_solucao():

@@ -279,11 +279,33 @@
         </div>
 
         <div class="campo">
+            <label>Feedback / Mensagem visível para o Usuário:</label>
+            <div class="solucao-original" style="background: #e8f4fd; border-left: 4px solid #0066B3;">
+                {{ demanda[14] if demanda[14] else 'Nenhuma mensagem de feedback definida ainda.' }}
+            </div>
+        </div>
+
+        <div class="campo">
+            <label>Avaliação do Usuário:</label>
+            <div style="font-size: 1.2rem; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #ddd; display: inline-block;">
+                {% if demanda[15] == 'like' %}
+                    👍 <span style="color: #009E2C; font-weight: bold; font-size: 1rem;">O usuário gostou da solução</span>
+                {% elif demanda[15] == 'dislike' %}
+                    👎 <span style="color: #cc0000; font-weight: bold; font-size: 1rem;">O usuário não gostou da solução</span>
+                {% else %}
+                    ⏳ <span style="color: #666; font-size: 0.95rem;">O usuário ainda não avaliou</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="campo">
             <label>Sugestão Técnica da IA:</label>
             <div class="solucao-original">
                 {{ demanda[13] if demanda[13] else 'Aguardando processamento da IA...' }}
             </div>
         </div>
+
+
 
         <div class="campo">
             <label>Solução Final (Visível para o Usuário):</label>
