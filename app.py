@@ -5,6 +5,21 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 import fdb
 import json
 
+# Adicione esta função ANTES de app = Flask(__name__)
+def from_json_filter(value):
+    """Converte string JSON para objeto Python"""
+    if not value:
+        return None
+    try:
+        if isinstance(value, str):
+            return json.loads(value)
+        return value
+    except:
+        return None
+
+app = Flask(__name__)
+app.jinja_env.filters['from_json'] = from_json_filter
+
 app = Flask(__name__)
 app.secret_key = "chave_secreta_ada_2025"
 
@@ -30,7 +45,7 @@ def get_db_connection():
     try:
         conn = fdb.connect(
             host='localhost',
-            database=r'C:\Users\Aluno\Downloads\ada-main\ada-main\BANCO (1).FDB',
+            database=r'C:\Users\Aluno\Downloads\ada-main\BANCO (1).FDB',
             user='SYSDBA',
             password='sysdba',
             charset='NONE'
@@ -59,7 +74,7 @@ def get_db_connection():
                 raise e
 
 
-CHAVE_API = "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"
+CHAVE_API = "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"
 URL_IA = "https://openrouter.ai/api/v1/chat/completions"
 
 HEADERS = {
@@ -531,16 +546,40 @@ def sede_ver_demanda(demanda_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-                   SELECT d.*, u.NOME, u.EMAIL, u.DEFICIENCIA
+                   SELECT d.ID, /* 0 */
+                          d.USUARIO_ID, /* 1 */
+                          d.TITULO, /* 2 */
+                          d.DESCRICAO, /* 3 */
+                          d.LOCALIZACAO, /* 4 */
+                          d.CATEGORIA, /* 5 */
+                          d.STATUS, /* 6 */
+                          d.AREA_RESPONSAVEL, /* 7 */
+                          d.PRAZO_ESTIMADO, /* 8 */
+                          d.DATA_CRIACAO, /* 9 */
+                          d.SOLUCAO_IA_COMPLEXA, /* 10 */
+                          d.SOLUCAO_COMPARADA, /* 11 */
+                          d.MENSAGEM_USUARIO, /* 12 */
+                          d.COMPARACAO_JSON, /* 13 */
+                          d.SOLUCAO_ADMIN, /* 14 */
+                          u.NOME, /* 15 */
+                          u.EMAIL, /* 16 */
+                          u.DEFICIENCIA /* 17 */
                    FROM DEMANDAS d
                             JOIN USUARIOS u ON d.USUARIO_ID = u.ID
                    WHERE d.ID = ?
                    """, (demanda_id,))
-    demanda = cursor.fetchone()
+
+    demanda = list(cursor.fetchone())
     conn.close()
 
-    return render_template('sede_ver_demanda.html', demanda=demanda)
+    # Converter COMPARACAO_JSON (índice 13) de string para dicionário
+    if demanda[13]:
+        try:
+            demanda[13] = json.loads(demanda[13])
+        except:
+            demanda[13] = None
 
+    return render_template('sede_ver_demanda.html', demanda=demanda)
 
 @app.route('/sede/comparar_solucoes', methods=['POST'])
 def sede_comparar_solucoes():
@@ -727,19 +766,20 @@ def ver_demanda(demanda_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-                   SELECT d.ID,
-                          d.TITULO,
-                          d.DESCRICAO,
-                          d.LOCALIZACAO,
-                          d.CATEGORIA,
-                          d.STATUS,
-                          d.SOLUCAO_ADMIN,
-                          d.AREA_RESPONSAVEL,
-                          d.PRAZO_ESTIMADO,
-                          d.DATA_CRIACAO,
-                          u.NOME,
-                          u.EMAIL,
-                          u.DEFICIENCIA
+                   SELECT d.ID,                  /* 0 */
+                          d.TITULO,              /* 1 */
+                          d.DESCRICAO,           /* 2 */
+                          d.LOCALIZACAO,         /* 3 */
+                          d.CATEGORIA,           /* 4 */
+                          d.STATUS,              /* 5 */
+                          d.SOLUCAO_ADMIN,       /* 6 */
+                          d.AREA_RESPONSAVEL,    /* 7 */
+                          d.PRAZO_ESTIMADO,      /* 8 */
+                          d.DATA_CRIACAO,        /* 9 */
+                          u.NOME,                /* 10 */
+                          u.EMAIL,               /* 11 */
+                          u.DEFICIENCIA,         /* 12 */
+                          d.SOLUCAO_IA_COMPLEXA  /* 13 */
                    FROM DEMANDAS d
                             JOIN USUARIOS u ON d.USUARIO_ID = u.ID
                    WHERE d.ID = ?
@@ -843,6 +883,61 @@ def relatorios():
     return render_template('relatorios.html',
                            stats_categoria=stats_categoria,
                            stats_status=stats_status)
+
+
+@app.route('/sede/sugerir_nova_solucao_admin', methods=['POST'])
+def sede_sugerir_nova_solucao_admin():
+    if 'usuario_id' not in session or session['tipo'] != 'sede':
+        return jsonify({"erro": "Não autorizado"}), 401
+
+    data = request.get_json()
+    demanda_id = data.get('demanda_id')
+    pergunta = data.get('pergunta', '')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT DESCRICAO, CATEGORIA, SOLUCAO_ADMIN FROM DEMANDAS WHERE ID = ?", (demanda_id,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return jsonify({"erro": "Demanda não encontrada"}), 404
+
+    descricao, categoria, solucao_atual = row
+
+    prompt = f"""
+    Você é um especialista em acessibilidade corporativa da Petrobras.
+
+    DEMANDA ORIGINAL: "{descricao}"
+    CATEGORIA: {categoria}
+    SOLUÇÃO ATUAL: "{solucao_atual if solucao_atual else 'Nenhuma solução definida'}"
+
+    PERGUNTA/SUGESTÃO DO ADMIN: "{pergunta}"
+
+    Responda APENAS com a nova solução sugerida, de forma prática e objetiva.
+    Seja específico e acolhedor.
+    """
+
+    nova_solucao = chamar_ia(prompt)
+    return jsonify({"solucao": nova_solucao})
+
+
+@app.route('/sede/atualizar_solucao_admin', methods=['POST'])
+def sede_atualizar_solucao_admin():
+    if 'usuario_id' not in session or session['tipo'] != 'sede':
+        return jsonify({"erro": "Não autorizado"}), 401
+
+    data = request.get_json()
+    demanda_id = data.get('demanda_id')
+    nova_solucao = data.get('nova_solucao')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE DEMANDAS SET SOLUCAO_ADMIN = ? WHERE ID = ?", (nova_solucao, demanda_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"sucesso": True})
 
 
 @app.route('/api/libras')

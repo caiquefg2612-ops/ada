@@ -260,7 +260,7 @@
                 <tr id="detalhes-{{ d[0] }}" style="display:none;">
                     <td colspan="6">
                         <div class="mensagem-box">
-                            <strong>📢 Resposta da Sede:</strong>
+                            <strong>Resposta da Sede:</strong>
                             <br><br>
                             {% if d[5] %}
                                 {{ d[5] }}
@@ -275,13 +275,13 @@
 
                         {% if d[3] == 'RESOLVIDO' %}
                         <div class="mensagem-box" style="margin-top: 10px; background: #d4edda; border-left-color: #28a745;">
-                            <strong>✅ Status: RESOLVIDO</strong>
+                            <strong>Status: RESOLVIDO</strong>
                             <br><br>
                             Esta demanda foi finalizada. Caso ainda enfrente o problema, por favor, registre uma nova demanda.
                         </div>
                         {% elif d[3] == 'EM_ANDAMENTO' %}
                         <div class="mensagem-box" style="margin-top: 10px; background: #fff3cd; border-left-color: #ffc107;">
-                            <strong>🔄 Status: EM ANDAMENTO</strong>
+                            <strong>Status: EM ANDAMENTO</strong>
                             <br><br>
                             Estamos trabalhando na solução. Em breve atualizaremos o status.
                         </div>

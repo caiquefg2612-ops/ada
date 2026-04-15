@@ -213,7 +213,7 @@
                     <td>{{ d[2] }}</div>
                     <td><strong>{{ d[3] }}</strong></div>
                     <td><span class="status status-{{ d[4] }}">{{ d[4] }}</span></div>
-                    <td>{% if d[5] %}{{ d[5] }}{% else %}{% endif %}</td>
+                   <td>{% if d[5] %}{{ d[5].strftime('%d/%m/%Y') if d[5] is not string else d[5][:10].replace('-', '/')[::-1].replace('/', '/', 1)[::-1] }}{% else %}{% endif %}</td>
                     <td>
                         <a href="{{ url_for('ver_demanda', demanda_id=d[0]) }}" class="btn-sm">
                             Ver Detalhes

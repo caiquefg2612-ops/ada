@@ -23,6 +23,7 @@
         justify-content: space-between;
         align-items: center;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
     }
 
     .header h2 {
@@ -36,20 +37,20 @@
     .header a {
         color: white;
         text-decoration: none;
-        background: #666;
+        background: #0066B3;
         padding: 8px 16px;
         border-radius: 8px;
         transition: background 0.3s;
     }
 
     .header a:hover {
-        background: #555;
+        background: #004d8c;
     }
 
     .container {
         max-width: 1200px;
-        margin: 30px auto;
-        padding: 0 20px;
+        margin: 0 auto;
+        padding: 20px;
     }
 
     .card {
@@ -221,25 +222,37 @@
         flex-wrap: wrap;
     }
 
-    body.alto-contraste .card,
-    body.alto-contraste .campo {
-        background: black;
-        border: 1px solid yellow;
-        color: yellow;
+    pre {
+        white-space: pre-wrap;
+        font-family: inherit;
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
     }
 
+    .sugestao-area {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 15px;
+        border: 1px dashed #2196f3;
+    }
+
+    /* Alto contraste */
+    body.alto-contraste .card,
+    body.alto-contraste .campo,
     body.alto-contraste .solucao-box,
     body.alto-contraste .comparacao-box,
     body.alto-contraste .mensagem-usuario {
-        background: #333;
-        border-color: yellow;
+        background: black;
+        border: 1px solid yellow;
         color: yellow;
     }
 </style>
 
 <div class="header">
     <h2>ADA Sede <span>| Análise da Demanda #{{ demanda[0] }}</span></h2>
-    <a href="{{ url_for('dashboard_sede') }}">← Voltar</a>
+    <a href="{{ url_for('dashboard_sede') }}">← Voltar ao Painel</a>
 </div>
 
 <div class="container">
@@ -249,12 +262,12 @@
 
         <div class="campo">
             <label>Usuário:</label>
-            {{ demanda[12] }} ({{ demanda[13] }})
+            {{ demanda[15] }} ({{ demanda[16] }})
         </div>
 
         <div class="campo">
             <label>Deficiência:</label>
-            {{ demanda[14] if demanda[14] else 'Não informada' }}
+            {{ demanda[17] if demanda[17] else 'Não informada' }}
         </div>
 
         <div class="campo">
@@ -285,22 +298,27 @@
 
     <!-- Solução do Admin (simples) -->
     <div class="card">
-        <h2>📝 Solução do Admin (versão simples)</h2>
+        <h2>📝 Solução Atual (Admin)</h2>
         <div class="solucao-box solucao-simples">
-            <p>{{ demanda[7] if demanda[7] else 'Nenhuma solução definida ainda.' }}</p>
-            <div class="info-solucao" style="margin-top: 10px; font-size: 0.9rem; color: #666;">
-                <strong>Área Responsável:</strong> {{ demanda[8] if demanda[8] else 'A definir' }}<br>
-                <strong>Prazo Estimado:</strong> {{ demanda[9] if demanda[9] else 'A definir' }}
+            <p>{{ demanda[14] if demanda[14] else 'Nenhuma solução definida ainda.' }}</p>
+            <div style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+                <strong>Área Responsável:</strong> {{ demanda[7] if demanda[7] else 'A definir' }}<br>
+                <strong>Prazo Estimado:</strong> {{ demanda[8] if demanda[8] else 'A definir' }}
             </div>
         </div>
+
+        <!-- Botão para editar solução (abre modal) -->
+        <button class="btn-primary" onclick="abrirModalEditar()" style="margin-top: 15px;">
+            ✏️ Sugerir Nova Solução (com ajuda da IA)
+        </button>
     </div>
 
     <!-- Solução IA Complexa -->
     <div class="card">
         <h2>🤖 Solução IA (versão complexa - apenas sede)</h2>
         <div class="solucao-box solucao-complexa">
-            {% if demanda[11] %}
-                <pre style="white-space: pre-wrap; font-family: inherit;">{{ demanda[11] }}</pre>
+            {% if demanda[10] %}
+                <pre>{{ demanda[10] }}</pre>
             {% else %}
                 <p><em>Solução complexa ainda não gerada. Entre em contato com o administrador.</em></p>
             {% endif %}
@@ -311,8 +329,9 @@
     <div class="card" id="comparacaoCard">
         <h2>🔍 Comparação de Soluções</h2>
 
-        {% if demanda[15] %}
+        {% if demanda[11] %}
             <!-- Já existe comparação salva -->
+            {% set comparacao = demanda[13] if demanda[13] is mapping else demanda[13] %}
             <div class="comparacao-box">
                 <h3>📊 Análise Comparativa</h3>
 
@@ -320,7 +339,7 @@
                     <div class="pros">
                         <strong>✅ Vantagens da Solução Admin:</strong>
                         <ul>
-                            {% for item in (demanda[16]|from_json).pros_admin %}
+                            {% for item in comparacao.pros_admin %}
                             <li>{{ item }}</li>
                             {% endfor %}
                         </ul>
@@ -328,7 +347,7 @@
                     <div class="cons">
                         <strong>❌ Desvantagens da Solução Admin:</strong>
                         <ul>
-                            {% for item in (demanda[16]|from_json).contras_admin %}
+                            {% for item in comparacao.contras_admin %}
                             <li>{{ item }}</li>
                             {% endfor %}
                         </ul>
@@ -339,7 +358,7 @@
                     <div class="pros">
                         <strong>✅ Vantagens da Solução IA:</strong>
                         <ul>
-                            {% for item in (demanda[16]|from_json).pros_ia %}
+                            {% for item in comparacao.pros_ia %}
                             <li>{{ item }}</li>
                             {% endfor %}
                         </ul>
@@ -347,7 +366,7 @@
                     <div class="cons">
                         <strong>❌ Desvantagens da Solução IA:</strong>
                         <ul>
-                            {% for item in (demanda[16]|from_json).contras_ia %}
+                            {% for item in comparacao.contras_ia %}
                             <li>{{ item }}</li>
                             {% endfor %}
                         </ul>
@@ -357,7 +376,7 @@
                 <div class="riscos">
                     <strong>⚠️ Riscos e Problemas Potenciais:</strong>
                     <ul>
-                        {% for item in (demanda[16]|from_json).riscos %}
+                        {% for item in comparacao.riscos %}
                         <li>{{ item }}</li>
                         {% endfor %}
                     </ul>
@@ -366,12 +385,12 @@
 
             <div class="solucao-box solucao-final">
                 <h3>✨ Solução Final Combinada</h3>
-                <pre style="white-space: pre-wrap; font-family: inherit;">{{ demanda[15] }}</pre>
+                <pre>{{ demanda[11] }}</pre>
             </div>
 
             <div class="mensagem-usuario">
                 <h3>💬 Mensagem para o Usuário</h3>
-                <p>{{ demanda[17] if demanda[17] else 'Mensagem não definida.' }}</p>
+                <p>{{ demanda[12] if demanda[12] else 'Mensagem não definida.' }}</p>
             </div>
 
             <div class="btn-group">
@@ -394,6 +413,24 @@
             </div>
             <div id="resultadoComparacao" style="margin-top: 20px;"></div>
         {% endif %}
+    </div>
+</div>
+
+<!-- Modal para editar solução com ajuda da IA -->
+<div id="modalEditar" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:20px; max-width:600px; width:90%; padding:30px;">
+        <h3 style="color:#0066B3; margin-bottom:20px;">✏️ Sugerir Nova Solução com IA</h3>
+
+        <label style="font-weight:bold; display:block; margin-bottom:5px;">O que você gostaria de sugerir ou perguntar para a IA?</label>
+        <textarea id="perguntaIA" rows="4" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-bottom:15px;"
+                  placeholder="Ex: Sugira uma solução mais barata para este caso...&#10;ou&#10;Como podemos implementar isso em menos tempo?&#10;ou&#10;Quais normas técnicas se aplicam aqui?"></textarea>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button onclick="fecharModal()" style="background:#666;">Cancelar</button>
+            <button onclick="gerarNovaSolucao()" class="btn-primary">🤖 Gerar Sugestão</button>
+        </div>
+
+        <div id="respostaIASugestao" style="margin-top:20px; display:none;" class="sugestao-area"></div>
     </div>
 </div>
 
@@ -424,79 +461,58 @@
                 return;
             }
 
-            // Mostrar resultado da comparação
             resultadoDiv.innerHTML = `
                 <div class="comparacao-box">
                     <h3>📊 Análise Comparativa</h3>
-
                     <div class="pros-cons">
                         <div class="pros">
                             <strong>✅ Vantagens da Solução Admin:</strong>
-                            <ul>
-                                ${data.pros_admin.map(p => `<li>${p}</li>`).join('')}
-                            </ul>
+                            <ul>${data.pros_admin.map(p => `<li>${p}</li>`).join('')}</ul>
                         </div>
                         <div class="cons">
                             <strong>❌ Desvantagens da Solução Admin:</strong>
-                            <ul>
-                                ${data.contras_admin.map(c => `<li>${c}</li>`).join('')}
-                            </ul>
+                            <ul>${data.contras_admin.map(c => `<li>${c}</li>`).join('')}</ul>
                         </div>
                     </div>
-
                     <div class="pros-cons">
                         <div class="pros">
                             <strong>✅ Vantagens da Solução IA:</strong>
-                            <ul>
-                                ${data.pros_ia.map(p => `<li>${p}</li>`).join('')}
-                            </ul>
+                            <ul>${data.pros_ia.map(p => `<li>${p}</li>`).join('')}</ul>
                         </div>
                         <div class="cons">
                             <strong>❌ Desvantagens da Solução IA:</strong>
-                            <ul>
-                                ${data.contras_ia.map(c => `<li>${c}</li>`).join('')}
-                            </ul>
+                            <ul>${data.contras_ia.map(c => `<li>${c}</li>`).join('')}</ul>
                         </div>
                     </div>
-
                     <div class="riscos">
                         <strong>⚠️ Riscos e Problemas Potenciais:</strong>
-                        <ul>
-                            ${data.riscos.map(r => `<li>${r}</li>`).join('')}
-                        </ul>
+                        <ul>${data.riscos.map(r => `<li>${r}</li>`).join('')}</ul>
                     </div>
                 </div>
-
                 <div class="solucao-box solucao-final">
                     <h3>✨ Solução Final Combinada</h3>
-                    <pre style="white-space: pre-wrap; font-family: inherit;">${data.solucao_final}</pre>
+                    <pre>${data.solucao_final}</pre>
                 </div>
-
                 <div class="mensagem-usuario">
                     <h3>💬 Mensagem para o Usuário</h3>
                     <p>${data.mensagem_usuario}</p>
                 </div>
-
                 <div class="btn-group">
                     <select id="statusFinal">
-                        <option value="PENDENTE" ${data.status_sugerido === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
-                        <option value="EM_ANDAMENTO" ${data.status_sugerido === 'EM_ANDAMENTO' ? 'selected' : ''}>EM ANDAMENTO</option>
-                        <option value="RESOLVIDO" ${data.status_sugerido === 'RESOLVIDO' ? 'selected' : ''}>RESOLVIDO</option>
+                        <option value="PENDENTE">PENDENTE</option>
+                        <option value="EM_ANDAMENTO" selected>EM ANDAMENTO</option>
+                        <option value="RESOLVIDO">RESOLVIDO</option>
                     </select>
                     <button class="btn-success" onclick="atualizarStatusFinal()">✅ Atualizar Status</button>
                 </div>
             `;
-
             btn.disabled = false;
-
-            if (typeof lerTexto === 'function') {
-                lerTexto('Comparação concluída. Uma solução final foi gerada.');
-            }
+            location.reload();
         })
         .catch(error => {
             loading.style.display = 'none';
             resultadoDiv.innerHTML = `<div class="comparacao-box" style="background:#f8d7da;">
-                <strong>❌ Erro na requisição:</strong> ${error.message}
+                <strong>❌ Erro:</strong> ${error.message}
             </div>`;
             btn.disabled = false;
         });
@@ -522,6 +538,88 @@
                 location.reload();
             } else {
                 alert('❌ Erro ao atualizar status');
+            }
+        });
+    }
+
+    function abrirModalEditar() {
+        document.getElementById('modalEditar').style.display = 'flex';
+        document.getElementById('perguntaIA').value = '';
+        document.getElementById('respostaIASugestao').style.display = 'none';
+    }
+
+    function fecharModal() {
+        document.getElementById('modalEditar').style.display = 'none';
+    }
+
+    function gerarNovaSolucao() {
+        const pergunta = document.getElementById('perguntaIA').value;
+        if (!pergunta) {
+            alert('Por favor, digite o que você gostaria de perguntar ou sugerir para a IA.');
+            return;
+        }
+
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerText = 'Gerando...';
+
+        const respostaDiv = document.getElementById('respostaIASugestao');
+        respostaDiv.style.display = 'block';
+        respostaDiv.innerHTML = '⏳ <strong>IA está analisando sua solicitação...</strong>';
+
+        fetch('/sede/sugerir_nova_solucao_admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                demanda_id: {{ demanda[0] }},
+                pergunta: pergunta
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerText = '🤖 Gerar Sugestão';
+
+            if (data.solucao) {
+                respostaDiv.innerHTML = `
+                    <strong>🤖 Sugestão da IA:</strong>
+                    <p style="margin: 10px 0;">${data.solucao}</p>
+                    <button onclick="aplicarNovaSolucao()" class="btn-success" style="padding: 5px 10px; font-size: 0.8rem;">
+                        ✅ Aplicar esta solução
+                    </button>
+                    <button onclick="fecharModal()" class="btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;">
+                        Cancelar
+                    </button>
+                `;
+            } else {
+                respostaDiv.innerHTML = '<strong>❌ Erro:</strong> ' + data.erro;
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            btn.innerText = '🤖 Gerar Sugestão';
+            respostaDiv.innerHTML = '<strong>❌ Erro:</strong> ' + error.message;
+        });
+    }
+
+    function aplicarNovaSolucao() {
+        const novaSolucao = document.querySelector('#respostaIASugestao p')?.innerText || '';
+
+        fetch('/sede/atualizar_solucao_admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                demanda_id: {{ demanda[0] }},
+                nova_solucao: novaSolucao
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                alert('✅ Solução atualizada com sucesso!');
+                location.reload();
+            } else {
+                alert('❌ Erro ao atualizar solução');
             }
         });
     }
