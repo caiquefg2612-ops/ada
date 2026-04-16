@@ -45,9 +45,9 @@ def get_db_connection():
     try:
         conn = fdb.connect(
             host='localhost',
-            database=r'C:\Users\Usuario\PycharmProjects\ada-main\BANCO (1).FDB',
+            database=r'C:\Users\Aluno\Downloads\ada-main\BANCO (1).FDB',
             user='SYSDBA',
-            password='SYSDBA',
+            password='sysdba',
             charset='NONE'
         )
         return conn
@@ -65,7 +65,7 @@ def get_db_connection():
                 conn = fdb.connect(
                     database='C:\\ADA\\ADA.FDB',
                     user='SYSDBA',
-                    password='',
+                    password='masterkey',
                     charset='UTF8'
                 )
                 return conn
@@ -74,7 +74,7 @@ def get_db_connection():
                 raise e
 
 
-CHAVE_API = ""
+CHAVE_API = "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"
 URL_IA = "https://openrouter.ai/api/v1/chat/completions"
 
 HEADERS = {
@@ -92,7 +92,12 @@ def chamar_ia(prompt):
         }
         resposta = requests.post(URL_IA, headers=HEADERS, json=data, timeout=60)
         resposta.raise_for_status()
-        return resposta.json()['choices'][0]['message']['content']
+
+        conteudo = resposta.json()['choices'][0]['message']['content']
+
+        # 👇 CORREÇÃO AQUI
+        return conteudo.encode('utf-8', errors='ignore').decode('utf-8')
+
     except Exception as e:
         return f"Erro na IA: {str(e)}"
 
@@ -727,13 +732,75 @@ def dashboard_admin():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # Query com URGENCIA e DATA_EXPIRACAO
         cursor.execute("""
-                       SELECT d.ID, u.NOME, d.TITULO, d.CATEGORIA, d.STATUS, d.DATA_CRIACAO
-                       FROM DEMANDAS d
-                                JOIN USUARIOS u ON d.USUARIO_ID = u.ID
-                       ORDER BY d.DATA_CRIACAO DESC
-                       """)
-        demandas = cursor.fetchall()
+            SELECT d.ID, 
+                   u.NOME, 
+                   d.TITULO, 
+                   d.CATEGORIA, 
+                   d.STATUS, 
+                   d.DATA_CRIACAO,
+                   d.URGENCIA,
+                   d.DATA_EXPIRACAO
+            FROM DEMANDAS d
+            JOIN USUARIOS u ON d.USUARIO_ID = u.ID
+            ORDER BY 
+                CASE 
+                    WHEN d.URGENCIA = 'ALTA' THEN 1
+                    WHEN d.URGENCIA = 'MEDIA' THEN 2
+                    WHEN d.URGENCIA = 'BAIXA' THEN 3
+                    ELSE 4 
+                END,
+                d.DATA_EXPIRACAO ASC NULLS LAST,
+                d.DATA_CRIACAO DESC
+        """)
+        demandas_raw = cursor.fetchall()
+
+        # Processar as demandas para calcular dias restantes e formatar
+        demandas = []
+        demandas_vencendo = 0
+        urgentes = 0
+        hoje = datetime.now().date()
+
+        for d in demandas_raw:
+            demanda_lista = list(d)
+
+            # Calcular dias restantes para expiração (índice 7 é DATA_EXPIRACAO)
+            dias_restantes = None
+            if demanda_lista[7]:
+                if hasattr(demanda_lista[7], 'date'):
+                    data_exp = demanda_lista[7].date()
+                    dias_restantes = (data_exp - hoje).days
+                else:
+                    try:
+                        data_exp = datetime.strptime(str(demanda_lista[7]), '%Y-%m-%d').date()
+                        dias_restantes = (data_exp - hoje).days
+                    except:
+                        dias_restantes = None
+
+                # Contar demandas vencendo (vencidas ou com 3 dias ou menos)
+                if dias_restantes is not None and dias_restantes <= 3:
+                    demandas_vencendo += 1
+
+            # Contar demandas urgentes
+            if demanda_lista[6] == 'ALTA':
+                urgentes += 1
+
+            # Formatar data de criação (índice 5)
+            if demanda_lista[5]:
+                if hasattr(demanda_lista[5], 'strftime'):
+                    demanda_lista[5] = demanda_lista[5].strftime('%d/%m/%Y')
+                else:
+                    data_str = str(demanda_lista[5])
+                    if ' ' in data_str:
+                        data_str = data_str.split(' ')[0]
+                    partes = data_str.split('-')
+                    if len(partes) == 3:
+                        demanda_lista[5] = f"{partes[2]}/{partes[1]}/{partes[0]}"
+
+            # Adicionar dias restantes como campo extra
+            demanda_lista.append(dias_restantes)
+            demandas.append(tuple(demanda_lista))
 
         cursor.execute("SELECT COUNT(*) FROM DEMANDAS")
         total = cursor.fetchone()[0]
@@ -750,6 +817,8 @@ def dashboard_admin():
         total = 0
         pendentes = 0
         total_usuarios = 0
+        urgentes = 0
+        demandas_vencendo = 0
         print(f"Erro: {e}")
 
     return render_template('dashboard_admin.html',
@@ -757,6 +826,8 @@ def dashboard_admin():
                            total=total,
                            pendentes=pendentes,
                            total_usuarios=total_usuarios,
+                           urgentes=urgentes,
+                           demandas_vencendo=demandas_vencendo,
                            nome=session['usuario_nome'])
 
 
@@ -970,6 +1041,43 @@ def avaliar_solucao():
     except Exception as e:
         # Importante: Mesmo no erro, tem que devolver JSON
         return jsonify({"erro": str(e)}), 500
+
+
+
+@app.route('/admin/definir_urgencia', methods=['POST'])
+def definir_urgencia():
+    if 'usuario_id' not in session or session['tipo'] != 'admin':
+        return jsonify({"erro": "Não autorizado"}), 401
+
+    data = request.get_json()
+    demanda_id = data.get('demanda_id')
+    urgencia = data.get('urgencia')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE DEMANDAS SET URGENCIA = ? WHERE ID = ?", (urgencia, demanda_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"sucesso": True})
+
+
+@app.route('/admin/salvar_data_expiracao', methods=['POST'])
+def salvar_data_expiracao():
+    if 'usuario_id' not in session or session['tipo'] != 'admin':
+        return jsonify({"erro": "Não autorizado"}), 401
+
+    data = request.get_json()
+    demanda_id = data.get('demanda_id')
+    data_expiracao = data.get('data_expiracao')
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE DEMANDAS SET DATA_EXPIRACAO = ? WHERE ID = ?", (data_expiracao, demanda_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"sucesso": True})
 
 
 if __name__ == '__main__':

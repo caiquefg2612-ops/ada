@@ -112,6 +112,94 @@
         color: white;
     }
 
+    /* Estilos de Urgência */
+    .urgencia {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .urgencia-ALTA {
+        background: #dc3545;
+        color: white;
+        animation: pulse 1.5s infinite;
+    }
+
+    .urgencia-MEDIA {
+        background: #ffc107;
+        color: #333;
+    }
+
+    .urgencia-BAIXA {
+        background: #28a745;
+        color: white;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+
+    /* Botões de urgência */
+    .btn-urgencia {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.2s;
+    }
+
+    .btn-urgencia:hover {
+        transform: scale(1.05);
+    }
+
+    .btn-alta {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-media {
+        background: #ffc107;
+        color: #333;
+    }
+
+    .btn-baixa {
+        background: #28a745;
+        color: white;
+    }
+
+    .expiracao-info {
+        font-size: 0.9rem;
+        margin-top: 10px;
+        padding: 10px;
+        border-radius: 8px;
+        background: #e8f4fd;
+    }
+
+    .expiracao-vencido {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .expiracao-hoje {
+        color: #ffc107;
+        font-weight: bold;
+    }
+
+    .expiracao-proximo {
+        color: #fd7e14;
+        font-weight: bold;
+    }
+
+    .expiracao-normal {
+        color: #28a745;
+        font-weight: bold;
+    }
+
     .solucao-original {
         background: #f8f9fa;
         padding: 15px;
@@ -137,7 +225,7 @@
         outline: none;
     }
 
-    select, input[type="text"], textarea {
+    select, input[type="text"], textarea, input[type="date"] {
         width: 100%;
         padding: 12px;
         border: 1px solid #ddd;
@@ -260,6 +348,57 @@
             <strong>{{ demanda[4] }}</strong>
         </div>
 
+        <!-- NOVO CAMPO: NÍVEL DE URGÊNCIA -->
+        <div class="campo">
+            <label>🔴 Nível de Urgência:</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                <button type="button" onclick="definirUrgencia('ALTA')" class="btn-urgencia btn-alta">
+                    🔴 ALTA
+                </button>
+                <button type="button" onclick="definirUrgencia('MEDIA')" class="btn-urgencia btn-media">
+                    🟡 MÉDIA
+                </button>
+                <button type="button" onclick="definirUrgencia('BAIXA')" class="btn-urgencia btn-baixa">
+                    🟢 BAIXA
+                </button>
+            </div>
+            <div id="urgenciaAtual" style="margin-top: 10px;">
+                Urgência atual:
+                {% if demanda[16] == 'ALTA' %}
+                    <span class="urgencia urgencia-ALTA">🔴 ALTA</span>
+                {% elif demanda[16] == 'MEDIA' %}
+                    <span class="urgencia urgencia-MEDIA">🟡 MÉDIA</span>
+                {% elif demanda[16] == 'BAIXA' %}
+                    <span class="urgencia urgencia-BAIXA">🟢 BAIXA</span>
+                else %}
+                    <span class="urgencia" style="background:#6c757d; color:white;">⚪ NÃO DEFINIDA</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- NOVO CAMPO: DATA DE EXPIRAÇÃO -->
+        <div class="campo">
+            <label>📅 Data de Expiração (prazo para resolver):</label>
+            <input type="date" id="dataExpiracao" value="{{ demanda[17] if demanda[17] else '' }}">
+            <button onclick="salvarDataExpiracao()" style="margin-top: 10px;">Salvar Prazo</button>
+            <div id="expiracaoStatus" class="expiracao-info" style="margin-top: 10px;">
+                {% if demanda[17] %}
+                    {% set dias_restantes = (demanda[17] - now).days if now else 0 %}
+                    {% if dias_restantes < 0 %}
+                        <span class="expiracao-vencido">💀 VENCIDA HÁ {{ -dias_restantes }} DIAS</span>
+                    {% elif dias_restantes == 0 %}
+                        <span class="expiracao-hoje">⚠️ EXPIRA HOJE</span>
+                    {% elif dias_restantes <= 3 %}
+                        <span class="expiracao-proximo">⏰ EXPIRA EM {{ dias_restantes }} DIAS</span>
+                    {% else %}
+                        <span class="expiracao-normal">✅ {{ dias_restantes }} DIAS RESTANTES</span>
+                    {% endif %}
+                {% else %}
+                    <span style="color:#666;">⏳ Nenhum prazo definido</span>
+                {% endif %}
+            </div>
+        </div>
+
         <div class="campo">
             <label>Status Atual:</label>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -270,7 +409,6 @@
                 </select>
                 <button onclick="atualizarStatus()">Atualizar Status</button>
             </div>
-            <!-- Exibe o status formatado sem underline -->
             <div style="margin-top: 10px;">
                 <span class="status status-{{ demanda[5] }}">
                     {{ demanda[5].replace('_', ' ') }}
@@ -299,20 +437,10 @@
         </div>
 
         <div class="campo">
-            <label>Sugestão Técnica da IA:</label>
-            <div class="solucao-original">
-                {{ demanda[13] if demanda[13] else 'Aguardando processamento da IA...' }}
-            </div>
-        </div>
-
-
-
-        <div class="campo">
             <label>Solução Final (Visível para o Usuário):</label>
             <textarea id="solucaoEditavel" class="solucao-editavel" rows="6" placeholder="Escreva aqui a resposta oficial para o usuário...">{{ demanda[6] if demanda[6] else '' }}</textarea>
             <div class="btn-group">
                 <button onclick="salvarSolucao()">Salvar Solução Oficial</button>
-                <button onclick="copiarSolucaoIA()" class="btn-secundario">Copiar Sugestão da IA</button>
             </div>
         </div>
 
@@ -378,13 +506,41 @@
         });
     }
 
-    function copiarSolucaoIA() {
-        const solucaoIA = `{{ demanda[13] if demanda[13] else '' }}`;
-        if(solucaoIA.trim() === "") {
-            alert("Não há sugestão da IA para copiar.");
-            return;
-        }
-        document.getElementById('solucaoEditavel').value = solucaoIA;
+    // NOVA FUNÇÃO: Definir Urgência
+    function definirUrgencia(nivel) {
+        fetch('/admin/definir_urgencia', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ demanda_id: {{ demanda[0] }}, urgencia: nivel })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                alert('✅ Nível de urgência atualizado para ' + nivel);
+                location.reload();
+            } else {
+                alert('❌ Erro ao atualizar urgência');
+            }
+        });
+    }
+
+    // NOVA FUNÇÃO: Salvar Data de Expiração
+    function salvarDataExpiracao() {
+        const dataExpiracao = document.getElementById('dataExpiracao').value;
+        fetch('/admin/salvar_data_expiracao', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ demanda_id: {{ demanda[0] }}, data_expiracao: dataExpiracao })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                alert('✅ Prazo de expiração salvo com sucesso!');
+                location.reload();
+            } else {
+                alert('❌ Erro ao salvar prazo');
+            }
+        });
     }
 
     function sugerirSolucao() {

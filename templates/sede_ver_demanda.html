@@ -258,7 +258,7 @@
 <div class="container">
     <!-- Informações da Demanda -->
     <div class="card">
-        <h2>📋 Informações da Demanda</h2>
+        <h2>Informações da Demanda</h2>
 
         <div class="campo">
             <label>Usuário:</label>
@@ -298,7 +298,7 @@
 
     <!-- Solução do Admin (simples) -->
     <div class="card">
-        <h2>📝 Solução Atual (Admin)</h2>
+        <h2>Solução Atual (Admin)</h2>
         <div class="solucao-box solucao-simples">
             <p>{{ demanda[14] if demanda[14] else 'Nenhuma solução definida ainda.' }}</p>
             <div style="margin-top: 10px; font-size: 0.9rem; color: #666;">
@@ -307,15 +307,12 @@
             </div>
         </div>
 
-        <!-- Botão para editar solução (abre modal) -->
-        <button class="btn-primary" onclick="abrirModalEditar()" style="margin-top: 15px;">
-            ✏️ Sugerir Nova Solução (com ajuda da IA)
-        </button>
+
     </div>
 
     <!-- Solução IA Complexa -->
     <div class="card">
-        <h2>🤖 Solução IA (versão complexa - apenas sede)</h2>
+        <h2>Solução IA (versão complexa - apenas sede)</h2>
         <div class="solucao-box solucao-complexa">
             {% if demanda[10] %}
                 <pre>{{ demanda[10] }}</pre>
